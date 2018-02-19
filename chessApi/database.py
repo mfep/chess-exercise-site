@@ -44,7 +44,7 @@ class Engine(object):
         :rtype: Connection
 
         """
-    #     return Connection(self.db_path)
+        return Connection(self.db_path)
 
     def remove_database(self):
         """
@@ -106,3 +106,44 @@ class Engine(object):
             sql = f.read()
             cur = con.cursor()
             cur.executescript(sql)
+
+
+class Connection(object):
+    """
+    API to access the chessApi database.
+
+    The sqlite3 connection instance is accessible to all the methods of this
+    class through the :py:attr:`self.con` attribute.
+
+    An instance of this class should not be instantiated directly using the
+    constructor. Instead use the :py:meth:`Engine.connect`.
+
+    Use the method :py:meth:`close` in order to close a connection.
+    A :py:class:`Connection` **MUST** always be closed once when it is not going to be
+    utilized anymore in order to release internal locks.
+
+    :param db_path: Location of the database file.
+    :type db_path: str
+
+    """
+    def __init__(self, db_path):
+        super(Connection, self).__init__()
+        self.con = sqlite3.connect(db_path)
+        self._isclosed = False
+
+    def isclosed(self):
+        """
+        :return: ``True`` if connection has already being closed.
+
+        """
+        return self._isclosed
+
+    def close(self):
+        """
+        Closes the database connection, commiting all changes.
+
+        """
+        if self.con and not self._isclosed:
+            self.con.commit()
+            self.con.close()
+            self._isclosed = True
