@@ -5,9 +5,9 @@
 import sqlite3
 import os
 
-DEFAULT_DB_PATH = 'db/forum.db'
-DEFAULT_SCHEMA = "db/forum_schema_dump.sql"
-DEFAULT_DATA_DUMP = "db/forum_data_dump.sql"
+DEFAULT_DB_PATH = 'db/chessApi.db'
+DEFAULT_SCHEMA = "db/chessApi_schema_dump.sql"
+DEFAULT_DATA_DUMP = "db/chessApi_data_dump.sql"
 
 
 class Engine(object):
@@ -26,7 +26,7 @@ class Engine(object):
 
     :param db_path: The path of the database file (always with respect to the
         calling script. If not specified, the Engine will use the file located
-        at *db/forum.db*
+        at *db/chessApi.db*
 
     """
     def __init__(self, db_path=None):
@@ -74,7 +74,7 @@ class Engine(object):
         Create programmatically the tables from a schema file.
 
         :param schema: path to the .sql schema file. If this parmeter is
-            None, then *db/forum_schema_dump.sql* is utilized.
+            None, then *db/chessApi_schema_dump.sql* is utilized.
 
         """
         con = sqlite3.connect(self.db_path)
@@ -106,61 +106,3 @@ class Engine(object):
             sql = f.read()
             cur = con.cursor()
             cur.executescript(sql)
-
-    def create_users_table(self):
-        """
-        Create the table ``users`` programmatically, without using .sql file.
-
-        Print an error message in the console if it could not be created.
-
-        :return: ``True`` if the table was successfully created or ``False``
-            otherwise.
-
-        """
-        keys_on = 'PRAGMA foreign_keys = ON'
-        stmnt = 'CREATE TABLE users(' \
-                'user_id INTEGER PRIMARY KEY,' \
-                'nickname TEXT UNIQUE,' \
-                'reg_date INTEGER,' \
-                'email TEXT)'
-        con = sqlite3.connect(self.db_path)
-        with con:
-            cur = con.cursor()
-            try:
-                cur.execute(keys_on)
-                cur.execute(stmnt)
-            except sqlite3.Error as excp:
-                print("Error %s:" % excp.args[0])
-                return False
-        return True
-
-    def create_exercises_table(self):
-        """
-        Create the table ``exercises`` programmatically, without using .sql file.
-
-        Print an error message in the console if it could not be created.
-
-        :return: ``True`` if the table was successfully created or ``False``
-            otherwise.
-
-        """
-        keys_on = 'PRAGMA foreign_keys = ON'
-        stmnt = 'CREATE TABLE exercises(' \
-                'exercise_id INTEGER PRIMARY KEY,' \
-                'user_id INTEGER,' \
-                'title TEXT UNIQUE,' \
-                'description TEXT,' \
-                'sub_date INTEGER,' \
-                'initial_state TEXT,' \
-                'list_moves TEXT,' \
-                'FOREIGN KEY(user_id) REFERENCES users(user_id) ON DELETE SET NULL )'
-        con = sqlite3.connect(self.db_path)
-        with con:
-            cur = con.cursor()
-            try:
-                cur.execute(keys_on)
-                cur.execute(stmnt)
-            except sqlite3.Error as excp:
-                print("Error %s:" % excp.args[0])
-                return False
-        return True
