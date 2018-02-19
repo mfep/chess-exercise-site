@@ -147,3 +147,48 @@ class Connection(object):
             self.con.commit()
             self.con.close()
             self._isclosed = True
+
+    def set_foreign_keys_support(self):
+        """
+        Activate the support for foreign keys.
+
+        :return: ``True`` if operation succeed and ``False`` otherwise.
+
+        """
+        keys_on = 'PRAGMA foreign_keys = ON'
+        try:
+            cur = self.con.cursor()
+            cur.execute(keys_on)
+            return True
+        except sqlite3.Error as excp:
+            print("Error %s:" % excp.args[0])
+            return False
+
+    def get_exercise(self, exercise_id):
+        """
+        Extracts exercise from database.
+
+        :param exercise_id: The identifier number of the message.
+        :return: A dictionary with the exercise data,
+            or None if no exercise with that id exists.
+
+        """
+        # fetch row
+        self.set_foreign_keys_support()
+        query = 'SELECT * FROM exercises WHERE exercise_id = ?'
+        self.con.row_factory = sqlite3.Row
+        cur = self.con.cursor()
+        pvalue = (exercise_id,)
+        cur.execute(query, pvalue)
+        row = cur.fetchone()
+
+        # row to dictionary
+        return None if not row else {
+            'exercise_id': row['exercise_id'],
+            'user_id': row['user_id'],
+            'title': row['title'],
+            'description': row['description'],
+            'sub_date': row['sub_date'],
+            'initial_state': row['initial_state'],
+            'list_moves': row['list_moves']
+        }
