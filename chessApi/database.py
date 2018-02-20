@@ -1,6 +1,9 @@
-# Created on 19.02.2018
-# Provides the database API to access the forum persistent data.
-# @author: lorinc
+"""
+Created on 19.02.2018
+Provides the database API to access the forum persistent data.
+@author: lorinc
+
+"""
 
 import sqlite3
 import os
@@ -192,3 +195,23 @@ class Connection(object):
             'initial_state': row['initial_state'],
             'list_moves': row['list_moves']
         }
+
+    def delete_exercise(self, exercise_id):
+        """
+        Deletes the exercise with the given id.
+
+        :param exercise_id: The id of the exercise to be deleted.
+        :return: True if the exercise has been deleted successfully, False otherwise.
+
+        """
+        self.set_foreign_keys_support()
+        query = 'DELETE FROM exercises WHERE exercise_id = ?'
+        self.con.row_factory = sqlite3.Row
+        cur = self.con.cursor()
+        pvalue = (exercise_id,)
+        try:
+            cur.execute(query, pvalue)
+            self.con.commit()
+        except sqlite3.Error as e:
+            print("Error %s:" % (e.args[0]))
+        return bool(cur.rowcount)
