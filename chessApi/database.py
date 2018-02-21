@@ -247,6 +247,50 @@ class Connection(object):
             print("Error %s:" % (e.args[0]))
         return bool(cur.rowcount)
 
+    def exercise_create(self, title, description, creator, initial_state, list_moves):
+        """
+        :param str title: the exercises's title
+        :param str description: the exercises's description
+        :param initial_state: The initial state of chess pieces on the board.
+        :param list_moves: The right moves which complete the exercise correctly.
+        :param creator: the username of the person that created the exercise.
+        :return: the id of the created exercise or None if the message was not
+            found.
+        :raises ChessApiDatabaseError: if the database could not be modified.
+         """
+        # SQL Statement for getting the user id
+        query1 = 'SELECT user_id from users WHERE nickname = ?'
+
+        # SQL Statement for inserting the data
+        stmnt = 'INSERT INTO exercises (user_id,title,description,sub_date,initial_state, \
+                                   list_moves) \
+                                   VALUES(?,?,?,?,?,?,?,?)'
+        user_id = None
+        timestamp = sqlite3.time.mktime(sqlite3.datetime.now().timetuple())
+
+        # fetch row
+        self.set_foreign_keys_support()
+        self.con.row_factory = sqlite3.Row
+        cur = self.con.cursor()
+        pvalue = (creator,)
+        cur.execute(query1, pvalue)
+        # Extract user id
+        row = cur.fetchone()
+        if row is not None:
+            user_id = row["user_id"]
+
+        # Generate the values for SQL statement
+        pvalue(user_id, title, description, timestamp, initial_state, list_moves)
+        # Execute the statement
+        cur.execute(stmnt, pvalue)
+        self.con.commit()
+
+        # Extract the id of the added message
+        lid = cur.lastrowid
+        # Return the id in
+        return 'msg-' + str(lid) if lid is not None else None
+
+
      #ACCESSING THE USER table
     def get_users(self):
         '''
