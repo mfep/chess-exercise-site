@@ -7,6 +7,7 @@ Provides the database API to access the forum persistent data.
 
 import sqlite3
 import os
+import re
 
 DEFAULT_DB_PATH = 'db/chessApi.db'
 DEFAULT_SCHEMA = "db/chessApi_schema_dump.sql"
@@ -247,6 +248,48 @@ class Connection(object):
             print("Error %s:" % (e.args[0]))
         return bool(cur.rowcount)
 
+    def exercise_modify(self, exerciseid, title, description, initial_state, list_moves):
+        """
+        Modify the title, the description and the editor of the message with id
+        ``exerciseid``
+        :param str exerciseid: The id of the message to remove. Note that
+            messageid is a string with format msg-\d{1,3}
+        :param str title: the exercise's title
+        :param str description: the exercise's description
+        :param str initial_state: The initial state of the pieces on the chess board.
+        :param str list_moves: The right list of moves.
+        :return: the id of the edited exercise or None if the exercise was
+              not found.
+        :raises ValueError: if the exerciseid has a wrong format.
+
+                 """
+        match = re.match(r'msg-(\d{1,3})', exerciseid)
+        if match is None:
+            raise ValueError("The exerciseid is malformed")
+        exerciseid = int(match.group(1))
+        stmnt='UPDATE exercises SET , title=:title , description=:description, initial_state=:initial_state,\
+         list_moves=:list_moves  WHERE exercise_id=:exercise_id'
+
+        self.set_foreign_keys_support()
+        self.con.row_factory = sqlite3.Row
+        cur = self.con.cursor()
+
+        pvalue = {"exercise_id": exerciseid,
+                  "title": title,
+                  "description": description,
+                  "initial_state": initial_state,
+                  "list_moves": list_moves}
+
+        try:
+            cur.execute(stmnt, pvalue)
+            self.con.commit()
+        except sqlite3.Error as e:
+            print("Error %s:" % (e.args[0]))
+        else:
+            if cur.row_count < 1:
+                return None
+        return 'msg-%s' %exerciseid
+
     def exercise_create(self, title, description, creator, initial_state, list_moves):
         """
         :param str title: the exercises's title
@@ -256,7 +299,6 @@ class Connection(object):
         :param creator: the username of the person that created the exercise.
         :return: the id of the created exercise or None if the message was not
             found.
-        :raises ChessApiDatabaseError: if the database could not be modified.
          """
         # SQL Statement for getting the user id
         query1 = 'SELECT user_id from users WHERE nickname = ?'
@@ -278,7 +320,6 @@ class Connection(object):
         row = cur.fetchone()
         if row is not None:
             user_id = row["user_id"]
-
         # Generate the values for SQL statement
         pvalue(user_id, title, description, timestamp, initial_state, list_moves)
         # Execute the statement
@@ -289,8 +330,6 @@ class Connection(object):
         lid = cur.lastrowid
         # Return the id in
         return 'msg-' + str(lid) if lid is not None else None
-
-
      #ACCESSING THE USER table
     def get_users(self):
         '''
