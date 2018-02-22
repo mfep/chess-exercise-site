@@ -345,3 +345,70 @@ class Connection(object):
         if cur.rowcount < 1:
             return False
         return True
+
+
+    def append_user(self, nickname, user):
+        '''
+        Create a new user in the database.
+
+        :param str nickname: The nickname of the user to modify
+        :param dict user: a dictionary with the information to be modified. The
+                dictionary has the following structure:
+
+                .. code-block:: javascript
+
+                where:
+
+                * ``registrationdate``: UNIX timestamp when the user registered
+                    in the system (long integer)
+                * ``email``: current email of the user.
+
+            Note that all values are string if they are not otherwise indicated.
+
+        :return: the nickname of the modified user or None if the
+            ``nickname`` passed as parameter is not  in the database.
+        :raise ValueError: if the user argument is not well formed.
+
+        '''
+        #Create the SQL Statements
+          #SQL Statement for extracting the userid given a nickname
+        query1 = 'SELECT user_id FROM users WHERE nickname = ?'
+          #SQL Statement to create the row in  users table
+        query2 = 'INSERT INTO users(nickname,regDate,lastLogin,timesviewed)\
+                  VALUES(?,?,?,?)'
+          #SQL Statement to create the row in user_profile table
+        query3 = 'INSERT INTO users (user_id, email)\
+                  VALUES (?,?)'
+        #temporal variables for user table
+        #timestamp will be used for lastlogin and regDate.
+        timestamp = time.mktime(datetime.now().timetuple())
+        timesviewed = 0
+        #temporal variables for user profiles
+        _email = users.get('email', None)
+        #Activate foreign key support
+        self.set_foreign_keys_support()
+        #Cursor and row initialization
+        self.con.row_factory = sqlite3.Row
+        cur = self.con.cursor()
+        #Execute the main SQL statement to extract the id associated to a nickname
+        pvalue = (nickname,)
+        cur.execute(query1, pvalue)
+        #No value expected (no other user with that nickname expected)
+        row = cur.fetchone()
+        #If there is no user add rows in user and user profile
+        if row is None:
+            #Add the row in users table
+            # Execute the statement
+            pvalue = (nickname, timestamp, timestamp, timesviewed)
+            cur.execute(query2, pvalue)
+            #Extrat the rowid => user-id
+            lid = cur.lastrowid
+            #Add the row in users_profile table
+            # Execute the statement
+            pvalue = (lid, _email)
+            cur.execute(query3, pvalue)
+            self.con.commit()
+            #We do not do any comprobation and return the nickname
+            return nickname
+        else:
+            return None
