@@ -9,7 +9,6 @@ import sqlite3
 import os
 import re
 import time
-from datetime import datetime
 
 DEFAULT_DB_PATH = 'db/chessApi.db'
 DEFAULT_SCHEMA = "db/chessApi_schema_dump.sql"
@@ -35,6 +34,7 @@ class Engine(object):
         at *db/chessApi.db*
 
     """
+
     def __init__(self, db_path=None):
         super(Engine, self).__init__()
         if db_path is not None:
@@ -113,9 +113,8 @@ class Engine(object):
             cur = con.cursor()
             cur.executescript(sql)
 
-
     def create_users_table(self):
-        '''
+        """
         Create the table ``users`` programmatically, without using .sql file.
 
         Print an error message in the console if it could not be created.
@@ -123,21 +122,21 @@ class Engine(object):
         :return: ``True`` if the table was successfully created or ``False``
             otherwise.
 
-        '''
+        """
         keys_on = 'PRAGMA foreign_keys = ON'
         stmnt = 'CREATE TABLE users(user_id INTEGER PRIMARY KEY,\
                                     nickname TEXT UNIQUE, reg_date INTEGER,\
                                     email TEXT,\
                                     UNIQUE(user_id, nickname))'
-        #Connects to the database. Gets a connection object
+        # Connects to the database. Gets a connection object
         con = sqlite3.connect(self.db_path)
         with con:
-            #Get the cursor object.
-            #It allows to execute SQL code and traverse the result set
+            # Get the cursor object.
+            # It allows to execute SQL code and traverse the result set
             cur = con.cursor()
             try:
                 cur.execute(keys_on)
-                #execute the statement
+                # execute the statement
                 cur.execute(stmnt)
             except sqlite3.Error as excp:
                 print("Error %s:" % excp.args[0])
@@ -163,6 +162,7 @@ class Connection(object):
     :type db_path: str
 
     """
+
     def __init__(self, db_path):
         super(Connection, self).__init__()
         self.con = sqlite3.connect(db_path)
@@ -201,9 +201,10 @@ class Connection(object):
             print("Error %s:" % excp.args[0])
             return False
 
-       #Helpers for users
+    # Helpers for users
+
     def _create_user_object(self, row):
-        '''
+        """
         It takes a database Row and transform it into a python dictionary.
 
         :param row: The row obtained from the database.
@@ -219,24 +220,21 @@ class Connection(object):
             * ``nickname``: nickname of the user
             * ``email``: current email of the user.
 
-        '''
+        """
         reg_date = row['reg_date']
-        return {'registrationdate': reg_date,'nickname': row['nickname'],'email': row['email']
-        }
+        return {'registrationdate': reg_date, 'nickname': row['nickname'], 'email': row['email']
+                }
 
     def _create_user_list_object(self, row):
-        '''
+        """
 
         :param row: The row obtained from the database.
         :type row: sqlite3.Row
         :return: a dictionary with the keys ``registrationdate`` and
             ``nickname``
 
-        '''
+        """
         return {'registrationdate': row['reg_date'], 'nickname': row['nickname']}
-
-
-
 
     def get_exercise(self, exercise_id):
         """
@@ -306,7 +304,7 @@ class Connection(object):
         if match is None:
             raise ValueError("The exerciseid is malformed")
         exerciseid = int(match.group(1))
-        stmnt='UPDATE exercises SET , title=:title , description=:description, initial_state=:initial_state,\
+        stmnt = 'UPDATE exercises SET , title=:title , description=:description, initial_state=:initial_state,\
          list_moves=:list_moves  WHERE exercise_id=:exercise_id'
 
         self.set_foreign_keys_support()
@@ -327,7 +325,7 @@ class Connection(object):
         else:
             if cur.row_count < 1:
                 return None
-        return 'msg-%s' %exerciseid
+        return 'msg-%s' % exerciseid
 
     def exercise_create(self, title, description, creator, initial_state, list_moves):
         """
@@ -369,9 +367,11 @@ class Connection(object):
         lid = cur.lastrowid
         # Return the id in
         return 'msg-' + str(lid) if lid is not None else None
-     #ACCESSING THE USER table
+
+    # ACCESSING THE USER table
+    @property
     def get_users(self):
-        '''
+        """
         Extracts all users in the database.
 
         :return: list of Users of the database. Each user is a dictionary
@@ -379,70 +379,67 @@ class Connection(object):
             (long representing UNIX timestamp). None is returned if the database
             has no users.
 
-        '''
-        #Create the SQL Statements
-          #SQL Statement for retrieving the users
+        """
+        # Create the SQL Statements
+        # SQL Statement for retrieving the users
         query = 'SELECT users.* FROM users'
-        #Activate foreign key support
+        # Activate foreign key support
         self.set_foreign_keys_support()
-        #Create the cursor
+        # Create the cursor
         self.con.row_factory = sqlite3.Row
         cur = self.con.cursor()
-        #Execute main SQL Statement
+        # Execute main SQL Statement
         cur.execute(query)
-        #Process the results
+        # Process the results
         rows = cur.fetchall()
         if rows is None:
             return None
-        #Process the response.
+        # Process the response.
         users = []
         for row in rows:
             users.append(self._create_user_list_object(row))
         return users
 
-
     def get_user(self, nickname):
-        '''
+        """
         Extracts all the information of a user.
 
         :param str nickname: The nickname of the user to search for.
         :return: dictionary with the format provided in the method:
             :py:meth:`_create_user_object`
 
-        '''
-        #Create the SQL Statements
-          #SQL Statement for retrieving the user given a nickname
+        """
+        # Create the SQL Statements
+        # SQL Statement for retrieving the user given a nickname
         query1 = 'SELECT user_id from users WHERE nickname = ?'
-          #SQL Statement for retrieving the user information
+        # SQL Statement for retrieving the user information
         query2 = 'SELECT users.* FROM users\
                   WHERE users.user_id = ? '
-          #Variable to be used in the second query.
-        user_id = None
-        #Activate foreign key support
+        # Variable to be used in the second query.
+        # Activate foreign key support
         self.set_foreign_keys_support()
-        #Cursor and row initialization
+        # Cursor and row initialization
         self.con.row_factory = sqlite3.Row
         cur = self.con.cursor()
-        #Execute SQL Statement to retrieve the id given a nickname
+        # Execute SQL Statement to retrieve the id given a nickname
         pvalue = (nickname,)
         cur.execute(query1, pvalue)
-        #Extract the user id
+        # Extract the user id
         row = cur.fetchone()
         if row is None:
             return None
-        user_id = row["user_id"]
+        user_id = row['user_id']
         # Execute the SQL Statement to retrieve the user invformation.
         # Create first the valuse
-        pvalue = (user_id, )
-        #execute the statement
+        pvalue = (user_id,)
+        # execute the statement
         cur.execute(query2, pvalue)
-        #Process the response. Only one posible row is expected.
+        # Process the response. Only one posible row is expected.
         row = cur.fetchone()
         return self._create_user_object(row)
 
-
     def delete_user(self, nickname):
-        '''
+        """
         Remove all user information of the user with the nickname passed in as
         argument.
 
@@ -450,27 +447,26 @@ class Connection(object):
 
         :return: True if the user is deleted, False otherwise.
 
-        '''
-        #Create the SQL Statements
-          #SQL Statement for deleting the user information
+        """
+        # Create the SQL Statements
+        # SQL Statement for deleting the user information
         query = 'DELETE FROM users WHERE nickname = ?'
-        #Activate foreign key support
+        # Activate foreign key support
         self.set_foreign_keys_support()
-        #Cursor and row initialization
+        # Cursor and row initialization
         self.con.row_factory = sqlite3.Row
         cur = self.con.cursor()
-        #Execute the statement to delete
+        # Execute the statement to delete
         pvalue = (nickname,)
         cur.execute(query, pvalue)
         self.con.commit()
-        #Check that it has been deleted
+        # Check that it has been deleted
         if cur.rowcount < 1:
             return False
         return True
 
-
     def append_user(self, nickname, user):
-        '''
+        """
         Create a new user in the database.
 
         :param str nickname: The nickname of the user to modify
@@ -491,40 +487,37 @@ class Connection(object):
             ``nickname`` passed as parameter is not  in the database.
         :raise ValueError: if the user argument is not well formed.
 
-        '''
-        #Create the SQL Statements
-          #SQL Statement for extracting the userid given a nickname
+        """
+        # Create the SQL Statements
+        # SQL Statement for extracting the userid given a nickname
         query1 = 'SELECT user_id FROM users WHERE nickname = ?'
-          #SQL Statement to create the row in  users table
+        # SQL Statement to create the row in  users table
         query2 = 'INSERT INTO users(nickname,reg_date,email)\
                   VALUES(?,?,?)'
-        #temporal variables for user table
-        #timestamp will be used for reg_date.
+        # temporal variables for user table
+        # timestamp will be used for reg_date.
         timestamp = int(time.time())
         _email = user.get('email', None)
-       
-        #Activate foreign key support
+
+        # Activate foreign key support
         self.set_foreign_keys_support()
-        #Cursor and row initialization
+        # Cursor and row initialization
         self.con.row_factory = sqlite3.Row
         cur = self.con.cursor()
-        #Execute the main SQL statement to extract the id associated to a nickname
+        # Execute the main SQL statement to extract the id associated to a nickname
         pvalue = (nickname,)
         cur.execute(query1, pvalue)
-        #No value expected (no other user with that nickname expected)
+        # No value expected (no other user with that nickname expected)
         row = cur.fetchone()
-        #If there is no user add rows in user
+        # If there is no user add rows in user
         if row is None:
-            #Add the row in users table
+            # Add the row in users table
             # Execute the statement
             pvalue = (nickname, timestamp, _email)
             cur.execute(query2, pvalue)
-            #Extrat the rowid => user-id
-            lid = cur.lastrowid
+            # Extrat the rowid => user-id
 
             self.con.commit()
-
-            row = cur.fetchone()
 
             return nickname
 
