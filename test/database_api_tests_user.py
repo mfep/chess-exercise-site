@@ -12,11 +12,11 @@ ENGINE = database.Engine(DB_PATH)
 #CONSTANTS DEFINING DIFFERENT USERS
 USER1_NICKNAME = 'Mystery'
 USER1_ID = 1
-USER1 = {'registrationdate': 1362015937, 'nickname': USER1_NICKNAME, 'email': 'jane@imaginecompany.com'}
+USER1 = {'registrationdate': 1362015937, 'nickname': USER1_NICKNAME, 'email': 'mystery@mymail.com'}
 
-USER2_NICKNAME = 'HockeyFan'
-USER2_ID = 5
-USER2 = {'registrationdate': 1394357686, 'nickname': USER2_NICKNAME, 'email': 'dan@gmail.com'}
+USER2_NICKNAME = 'AxelW'
+USER2_ID = 2
+USER2 = {'registrationdate': 1357724086, 'nickname': USER2_NICKNAME, 'email': 'axelw@mymail.com'}
 
 NEW_USER_NICKNAME = 'sully'
 NEW_USER = {'email': 'sully@rda.com'}
@@ -140,9 +140,6 @@ class UserDBAPITestCase(unittest.TestCase):
         #Check that the users has been really deleted throug a get
         resp2 = self.connection.get_user(USER1_NICKNAME)
         self.assertIsNone(resp2)
-        #Check that the user does not have associated any message
-        resp3 = self.connection.get_messages(nickname=USER1_NICKNAME)
-        self.assertEqual(len(resp3), 0)
 
     def test_delete_user_noexistingnickname(self):
         '''

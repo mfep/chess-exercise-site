@@ -8,6 +8,8 @@ Provides the database API to access the forum persistent data.
 import sqlite3
 import os
 import re
+import time
+from datetime import datetime
 
 DEFAULT_DB_PATH = 'db/chessApi.db'
 DEFAULT_SCHEMA = "db/chessApi_schema_dump.sql"
@@ -124,7 +126,7 @@ class Engine(object):
         '''
         keys_on = 'PRAGMA foreign_keys = ON'
         stmnt = 'CREATE TABLE users(user_id INTEGER PRIMARY KEY,\
-                                    nickname TEXT UNIQUE, regDate INTEGER,\
+                                    nickname TEXT UNIQUE, reg_date INTEGER,\
                                     email TEXT,\
                                     UNIQUE(user_id, nickname))'
         #Connects to the database. Gets a connection object
@@ -198,6 +200,43 @@ class Connection(object):
         except sqlite3.Error as excp:
             print("Error %s:" % excp.args[0])
             return False
+
+       #Helpers for users
+    def _create_user_object(self, row):
+        '''
+        It takes a database Row and transform it into a python dictionary.
+
+        :param row: The row obtained from the database.
+        :type row: sqlite3.Row
+        :return: a dictionary with the following format:
+
+            .. code-block:: javascript
+
+            where:
+
+            * ``registrationdate``: UNIX timestamp when the user registered in
+                                 the system (long integer)
+            * ``nickname``: nickname of the user
+            * ``email``: current email of the user.
+
+        '''
+        reg_date = row['reg_date']
+        return {'registrationdate': reg_date,'nickname': row['nickname'],'email': row['email']
+        }
+
+    def _create_user_list_object(self, row):
+        '''
+
+        :param row: The row obtained from the database.
+        :type row: sqlite3.Row
+        :return: a dictionary with the keys ``registrationdate`` and
+            ``nickname``
+
+        '''
+        return {'registrationdate': row['reg_date'], 'nickname': row['nickname']}
+
+
+
 
     def get_exercise(self, exercise_id):
         """
@@ -430,7 +469,7 @@ class Connection(object):
         return True
 
 
-    def append_user(self, nickname, user):
+    def append_user(self, nickname, email):
         '''
         Create a new user in the database.
 
@@ -457,17 +496,13 @@ class Connection(object):
           #SQL Statement for extracting the userid given a nickname
         query1 = 'SELECT user_id FROM users WHERE nickname = ?'
           #SQL Statement to create the row in  users table
-        query2 = 'INSERT INTO users(nickname,regDate,lastLogin,timesviewed)\
-                  VALUES(?,?,?,?)'
-          #SQL Statement to create the row in user_profile table
-        query3 = 'INSERT INTO users (user_id, email)\
-                  VALUES (?,?)'
+        query2 = 'INSERT INTO users(nickname,reg_date,email)\
+                  VALUES(?,?,?)'
         #temporal variables for user table
-        #timestamp will be used for lastlogin and regDate.
+        #timestamp will be used for reg_date.
         timestamp = time.mktime(datetime.now().timetuple())
-        timesviewed = 0
         #temporal variables for user profiles
-        _email = users.get('email', None)
+       
         #Activate foreign key support
         self.set_foreign_keys_support()
         #Cursor and row initialization
@@ -482,16 +517,16 @@ class Connection(object):
         if row is None:
             #Add the row in users table
             # Execute the statement
-            pvalue = (nickname, timestamp, timestamp, timesviewed)
+            pvalue = (nickname, timestamp, email)
             cur.execute(query2, pvalue)
             #Extrat the rowid => user-id
             lid = cur.lastrowid
-            #Add the row in users_profile table
-            # Execute the statement
-            pvalue = (lid, _email)
-            cur.execute(query3, pvalue)
+
             self.con.commit()
-            #We do not do any comprobation and return the nickname
-            return nickname
+
+            row = cur.fetchone()
+
+            return row['user_id']
+
         else:
             return None
