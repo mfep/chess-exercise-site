@@ -21,6 +21,15 @@ EXERCISE1 = {
     'initial_state': 'VALIDFENFEN',
     'list_moves': 'VALIDPGNPGN'
 }
+EXERCISE2_MODIFIED = {
+    'exercise_id': 2,
+    'user_id': 1,
+    'title': 'Modified Title',
+    'description': 'Description',
+    'sub_date': 1443827483,
+    'initial_state': 'asd',
+    'list_moves': 'dsa'
+}
 
 
 class ExerciseApiDbTestCase(unittest.TestCase):
@@ -92,6 +101,15 @@ class ExerciseApiDbTestCase(unittest.TestCase):
               self.test_exercise_delete_invalid.__doc__)
 
         self.assertFalse(self.connection.delete_exercise(100))
+
+    def test_exercise_modify_valid(self):
+        """Checks if an existing exercise can be modified"""
+        print('(' + self.test_exercise_modify_valid.__name__ + ')',
+              self.test_exercise_modify_valid.__doc__)
+
+        value = self.connection.modify_exercise(2, "Modified Title", "Description", "asd", "dsa")
+        self.assertEqual(value, 2)
+        self.assertDictEqual(self.connection.get_exercise(2), EXERCISE2_MODIFIED)
 
 
 if __name__ == '__main__':

@@ -248,26 +248,19 @@ class Connection(object):
             print("Error %s:" % (e.args[0]))
         return bool(cur.rowcount)
 
-    def exercise_modify(self, exerciseid, title, description, initial_state, list_moves):
+    def modify_exercise(self, exerciseid, title, description, initial_state, list_moves):
         """
         Modify the title, the description and the editor of the message with id
         ``exerciseid``
-        :param str exerciseid: The id of the message to remove. Note that
-            messageid is a string with format msg-\d{1,3}
+        :param int exerciseid: The id of the exercise to be modified.
         :param str title: the exercise's title
         :param str description: the exercise's description
         :param str initial_state: The initial state of the pieces on the chess board.
         :param str list_moves: The right list of moves.
         :return: the id of the edited exercise or None if the exercise was
               not found.
-        :raises ValueError: if the exerciseid has a wrong format.
-
                  """
-        match = re.match(r'msg-(\d{1,3})', exerciseid)
-        if match is None:
-            raise ValueError("The exerciseid is malformed")
-        exerciseid = int(match.group(1))
-        stmnt='UPDATE exercises SET , title=:title , description=:description, initial_state=:initial_state,\
+        stmnt='UPDATE exercises SET title=:title , description=:description, initial_state=:initial_state,\
          list_moves=:list_moves  WHERE exercise_id=:exercise_id'
 
         self.set_foreign_keys_support()
@@ -286,9 +279,9 @@ class Connection(object):
         except sqlite3.Error as e:
             print("Error %s:" % (e.args[0]))
         else:
-            if cur.row_count < 1:
+            if cur.rowcount < 1:
                 return None
-        return 'msg-%s' %exerciseid
+        return exerciseid
 
     def exercise_create(self, title, description, creator, initial_state, list_moves):
         """
