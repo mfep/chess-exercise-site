@@ -5,9 +5,8 @@ Provides the database API to access the forum persistent data.
 
 """
 
-import sqlite3
-import os
-import re
+from datetime import datetime
+import time, sqlite3, re, os
 
 DEFAULT_DB_PATH = 'db/chessApi.db'
 DEFAULT_SCHEMA = "db/chessApi_schema_dump.sql"
@@ -252,15 +251,17 @@ class Connection(object):
         """
         Modify the title, the description and the editor of the message with id
         ``exerciseid``
-        :param int exerciseid: The id of the exercise to be modified.
+        :param int exerciseid: The id of the message to remove. Note that
+            messageid is a string with format msg-\d{1,3}
         :param str title: the exercise's title
         :param str description: the exercise's description
         :param str initial_state: The initial state of the pieces on the chess board.
         :param str list_moves: The right list of moves.
         :return: the id of the edited exercise or None if the exercise was
               not found.
-                 """
-        stmnt='UPDATE exercises SET title=:title , description=:description, initial_state=:initial_state,\
+        :raises ValueError: if the exerciseid has a wrong format.
+        """
+        stmnt = 'UPDATE exercises SET title=:title , description=:description, initial_state=:initial_state,\
          list_moves=:list_moves  WHERE exercise_id=:exercise_id'
 
         self.set_foreign_keys_support()
@@ -283,13 +284,13 @@ class Connection(object):
                 return None
         return exerciseid
 
-    def exercise_create(self, title, description, creator, initial_state, list_moves):
+    def create_exercise(self, title, description, creator, initial_state, list_moves):
         """
         :param str title: the exercises's title
         :param str description: the exercises's description
-        :param initial_state: The initial state of chess pieces on the board.
-        :param list_moves: The right moves which complete the exercise correctly.
-        :param creator: the username of the person that created the exercise.
+        :param str initial_state: The initial state of chess pieces on the board.
+        :param str list_moves: The right moves which complete the exercise correctly.
+        :param str creator: the username of the person that created the exercise.
         :return: the id of the created exercise or None if the message was not
             found.
          """
@@ -299,9 +300,9 @@ class Connection(object):
         # SQL Statement for inserting the data
         stmnt = 'INSERT INTO exercises (user_id,title,description,sub_date,initial_state, \
                                    list_moves) \
-                                   VALUES(?,?,?,?,?,?,?,?)'
+                                   VALUES(?,?,?,?,?,?)'
         user_id = None
-        timestamp = sqlite3.time.mktime(sqlite3.datetime.now().timetuple())
+        timestamp = time.mktime(datetime.now().timetuple())
 
         # fetch row
         self.set_foreign_keys_support()
@@ -314,15 +315,14 @@ class Connection(object):
         if row is not None:
             user_id = row["user_id"]
         # Generate the values for SQL statement
-        pvalue(user_id, title, description, timestamp, initial_state, list_moves)
+        pvalue = (user_id, title, description, timestamp, initial_state, list_moves)
         # Execute the statement
         cur.execute(stmnt, pvalue)
+        committed = cur.fetchone()
         self.con.commit()
 
-        # Extract the id of the added message
-        lid = cur.lastrowid
         # Return the id in
-        return 'msg-' + str(lid) if lid is not None else None
+        return committed['exercise_id']
      #ACCESSING THE USER table
     def get_users(self):
         '''
