@@ -469,7 +469,7 @@ class Connection(object):
         return True
 
 
-    def append_user(self, nickname, email):
+    def append_user(self, nickname, user):
         '''
         Create a new user in the database.
 
@@ -500,8 +500,8 @@ class Connection(object):
                   VALUES(?,?,?)'
         #temporal variables for user table
         #timestamp will be used for reg_date.
-        timestamp = time.mktime(datetime.now().timetuple())
-        #temporal variables for user profiles
+        timestamp = int(time.time())
+        _email = user.get('email', None)
        
         #Activate foreign key support
         self.set_foreign_keys_support()
@@ -513,11 +513,11 @@ class Connection(object):
         cur.execute(query1, pvalue)
         #No value expected (no other user with that nickname expected)
         row = cur.fetchone()
-        #If there is no user add rows in user and user profile
+        #If there is no user add rows in user
         if row is None:
             #Add the row in users table
             # Execute the statement
-            pvalue = (nickname, timestamp, email)
+            pvalue = (nickname, timestamp, _email)
             cur.execute(query2, pvalue)
             #Extrat the rowid => user-id
             lid = cur.lastrowid
@@ -526,7 +526,7 @@ class Connection(object):
 
             row = cur.fetchone()
 
-            return row['user_id']
+            return nickname
 
         else:
             return None
