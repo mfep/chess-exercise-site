@@ -88,14 +88,12 @@ class ExerciseApiDbTestCase(unittest.TestCase):
         """Checks if exercises table has been created with 3 rows."""
         print('('+self.test_exercise_table_created.__name__+')',
               self.test_exercise_table_created.__doc__)
-
         self.assertEqual(self._get_exercise_table_row_count(), INITIAL_EXERCISE_SIZE)
 
     def test_exercise_get_valid(self):
         """Checks if existing exercise row is returned correctly"""
         print('('+self.test_exercise_get_valid.__name__+')',
               self.test_exercise_get_valid.__doc__)
-
         exercise = self.connection.get_exercise(1)
         self.assertDictEqual(exercise, EXERCISE1)
 
@@ -103,7 +101,6 @@ class ExerciseApiDbTestCase(unittest.TestCase):
         """Checks if None is returned for non-existing exercise"""
         print('('+self.test_exercise_get_invalid.__name__+')',
               self.test_exercise_get_invalid.__doc__)
-
         self.assertIsNone(self.connection.get_exercise(100))
 
     def test_exercises_get_valid(self):
@@ -129,7 +126,6 @@ class ExerciseApiDbTestCase(unittest.TestCase):
         """Checks if an existing exercise can be deleted"""
         print('('+self.test_exercise_delete_valid.__name__+')',
               self.test_exercise_delete_valid.__doc__)
-
         self.assertTrue(self.connection.delete_exercise(2))
         self.assertIsNone(self.connection.get_exercise(2))
         self.assertEqual(self._get_exercise_table_row_count(), INITIAL_EXERCISE_SIZE-1)
@@ -138,14 +134,12 @@ class ExerciseApiDbTestCase(unittest.TestCase):
         """Checks when a non-existing exercise is to be deleted, the return value is False"""
         print('('+self.test_exercise_delete_invalid.__name__+')',
               self.test_exercise_delete_invalid.__doc__)
-
         self.assertFalse(self.connection.delete_exercise(100))
 
     def test_exercise_modify_valid(self):
         """Checks if an existing exercise can be modified"""
         print('(' + self.test_exercise_modify_valid.__name__ + ')',
               self.test_exercise_modify_valid.__doc__)
-
         value = self.connection.modify_exercise(2, "Modified Title", "Description", "asd", "dsa")
         self.assertEqual(value, 2)
         self.assertDictEqual(self.connection.get_exercise(2), EXERCISE2_MODIFIED)
@@ -154,14 +148,12 @@ class ExerciseApiDbTestCase(unittest.TestCase):
         """Checks when a non-existing exercise is to be modified, the retun value is False"""
         print('(' + self.test_exercise_modify_invalid.__name__ + ')',
               self.test_exercise_modify_invalid.__doc__)
-
         self.assertFalse(self.connection.modify_exercise(200, "zvc", "fasd", "dsa", "Asd"))
 
     def test_exercise_create_valid(self):
         """Checks if an exercise can be created"""
         print('(' + self.test_exercise_create_valid.__name__ + ')',
               self.test_exercise_create_valid.__doc__)
-
         exercise = self.connection.create_exercise("New Exercise", "Description new", "Mystery", "new state", "new new")
         self.assertEqual(exercise, 4)
         self.assertDictContainsSubset(EXERCISE_CREATE, self.connection.get_exercise(4))

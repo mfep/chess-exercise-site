@@ -28,17 +28,13 @@ USER_WRONG_NICKNAME = 'Batty'
 INITIAL_SIZE = 5
 
 
-class UserDBAPITestCase(unittest.TestCase):
-    """
-    Test cases for the Users related methods.
-    """
+class UserDbApiTestCase(unittest.TestCase):
+    """Test cases for the Users related methods"""
 
     # INITIATION AND TEARDOWN METHODS
     @classmethod
     def setUpClass(cls):
-        """ Creates the database structure. Removes first any preexisting
-            database file
-        """
+        """Creates the database structure. Removes first any preexisting database file"""
         print("Testing ", cls.__name__)
         ENGINE.remove_database()
         ENGINE.create_tables()
@@ -50,9 +46,7 @@ class UserDBAPITestCase(unittest.TestCase):
         ENGINE.remove_database()
 
     def setUp(self):
-        """
-        Populates the database
-        """
+        """Populates the database"""
         try:
             # This method load the initial values from forum_data_dump.sql
             ENGINE.populate_tables()
@@ -63,14 +57,12 @@ class UserDBAPITestCase(unittest.TestCase):
             ENGINE.clear()
 
     def tearDown(self):
-        """
-        Close underlying connection and remove all records from database
-        """
+        """Close underlying connection and remove all records from database"""
         self.connection.close()
         ENGINE.clear()
 
     def test_users_table_created(self):
-
+        """Tests if the table for users created successfully"""
         print('(' + self.test_users_table_created.__name__ + ')',
               self.test_users_table_created.__doc__)
         # Create the SQL Statement
@@ -91,33 +83,23 @@ class UserDBAPITestCase(unittest.TestCase):
             self.assertEqual(len(users), INITIAL_SIZE)
 
     def test_get_user(self):
-        """
-        Test get_user with id Mystery and HockeyFan
-        """
+        """Test if existing user data can be acquired"""
         print('(' + self.test_get_user.__name__ + ')',
               self.test_get_user.__doc__)
-
-        # Test with an existing user
         user = self.connection.get_user(USER1_NICKNAME)
         self.assertDictContainsSubset(user, USER1)
         user = self.connection.get_user(USER2_NICKNAME)
         self.assertDictContainsSubset(user, USER2)
 
     def test_get_user_noexistingid(self):
-        """
-        Test get_user with  msg-200 (no-existing)
-        """
+        """Test get_user with  msg-200 (no-existing)"""
         print('(' + self.test_get_user_noexistingid.__name__ + ')',
               self.test_get_user_noexistingid.__doc__)
-
-        # Test with an existing user
         user = self.connection.get_user(USER_WRONG_NICKNAME)
         self.assertIsNone(user)
 
     def test_get_users(self):
-        """
-        Test that get_users work correctly and extract required user info
-        """
+        """Test that get_users work correctly and extracts required user info"""
         print('(' + self.test_get_users.__name__ + ')',
               self.test_get_users.__doc__)
         users = self.connection.get_users()
@@ -132,41 +114,31 @@ class UserDBAPITestCase(unittest.TestCase):
                 self.assertDictContainsSubset(user, USER2)
 
     def test_get_users_empty(self):
-        """
-        Test that get_users return None when no users is in the database.
-
-        """
+        """Test that get_users return None when no users is in the database."""
         print('(' + self.test_get_users_empty.__name__ + ')',
               self.test_get_users_empty.__doc__)
         ENGINE.clear()
         self.assertListEqual([], self.connection.get_users())
 
     def test_delete_user(self):
-        """
-        Test that the user Mystery is deleted
-        """
+        """Test that the user can be deleted"""
         print('(' + self.test_delete_user.__name__ + ')',
               self.test_delete_user.__doc__)
         resp = self.connection.delete_user(USER1_NICKNAME)
         self.assertTrue(resp)
-        # Check that the users has been really deleted throug a get
+        # Check that the users has been really deleted through a get
         resp2 = self.connection.get_user(USER1_NICKNAME)
         self.assertIsNone(resp2)
 
     def test_delete_user_noexistingnickname(self):
-        """
-        Test delete_user with  Batty (no-existing)
-        """
+        """Test delete_user with Batty (no-existing)"""
         print('(' + self.test_delete_user_noexistingnickname.__name__ + ')',
               self.test_delete_user_noexistingnickname.__doc__)
-        # Test with an existing user
         resp = self.connection.delete_user(USER_WRONG_NICKNAME)
         self.assertFalse(resp)
 
     def test_append_user(self):
-        """
-        Test that I can add new users
-        """
+        """Test that I can add new users"""
         print('(' + self.test_append_user.__name__ + ')',
               self.test_append_user.__doc__)
         nickname = self.connection.append_user(NEW_USER_NICKNAME, NEW_USER_MAIL)
@@ -178,9 +150,7 @@ class UserDBAPITestCase(unittest.TestCase):
         self.assertDictContainsSubset(NEW_USER, resp2)
 
     def test_append_existing_user(self):
-        """
-        Test that I cannot add two users with the same name
-        """
+        """Test that I cannot add two users with the same name"""
         print('(' + self.test_append_existing_user.__name__ + ')',
               self.test_append_existing_user.__doc__)
         nickname = self.connection.append_user(USER1_NICKNAME, NEW_USER_MAIL)
