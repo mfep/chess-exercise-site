@@ -21,7 +21,26 @@ EXERCISE1 = {
     'initial_state': 'VALIDFENFEN',
     'list_moves': 'VALIDPGNPGN'
 }
+EXERCISE2_MODIFIED = {
+    'exercise_id': 2,
+    'user_id': 1,
+    'title': 'Modified Title',
+    'description': 'Description',
+    'sub_date': 1443827483,
+    'initial_state': 'asd',
+    'list_moves': 'dsa'
 
+}
+
+EXERCISE3_create = {
+    'exercise_id': 15,
+    'user_id': 10,
+    'title': 'New Exercise',
+    'description': 'Description new',
+    'sub_date': 1519081565,
+    'initial_state': 'new state',
+    'list_moves': 'new new'
+}
 
 class ExerciseApiDbTestCase(unittest.TestCase):
     """Test cases for the Exercise related methods."""
@@ -92,6 +111,31 @@ class ExerciseApiDbTestCase(unittest.TestCase):
               self.test_exercise_delete_invalid.__doc__)
 
         self.assertFalse(self.connection.delete_exercise(100))
+
+    def test_exercise_modify_valid(self):
+        """Checks if an existing exercise can be modified"""
+        print('(' + self.test_exercise_modify_valid.__name__ + ')',
+              self.test_exercise_modify_valid.__doc__)
+
+        value = self.connection.modify_exercise(2, "Modified Title", "Description", "asd", "dsa")
+        self.assertEqual(value, 2)
+        self.assertDictEqual(self.connection.get_exercise(2), EXERCISE2_MODIFIED)
+
+    def test_exercise_modify_invalid(self):
+        """Checks when a non-existing exercise is to be modified, the retun value is False"""
+        print('(' + self.test_exercise_modify_invalid.__name__ + ')',
+              self.test_exercise_modify_invalid.__doc__)
+
+        self.assertFalse(self.connection.modify_exercise(200, "zvc", "fasd", "dsa", "Asd"))
+
+    def test_exercise_create_valid(self):
+        """Checks if an exercise can be created"""
+        print('(' + self.test_exercise_create_valid.__name__ + ')',
+              self.test_exercise_create_valid.__doc__)
+
+        exercise = self.connection.create_exercise(10, "New Exercise", "Description new", "new state", "new new")
+        self.assertEqual(exercise, 3)
+        self.assertDictEqual(self.connection.get_exercise(3), EXERCISE3_create)
 
 
 if __name__ == '__main__':
