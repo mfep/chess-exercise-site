@@ -117,7 +117,7 @@ class UserDBAPITestCase(unittest.TestCase):
         """
         print('(' + self.test_get_users.__name__ + ')',
               self.test_get_users.__doc__)
-        users = self.connection.get_users
+        users = self.connection.get_users()
         # Check that the size is correct
         self.assertEqual(len(users), INITIAL_SIZE)
         # Iterate throug users and check if the users with USER1_ID and

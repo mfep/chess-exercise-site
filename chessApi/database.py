@@ -357,11 +357,10 @@ class Connection(object):
         pvalue = (user_id, title, description, timestamp, initial_state, list_moves)
         # Execute the statement
         cur.execute(stmnt, pvalue)
-        committed = cur.fetchone()
         self.con.commit()
 
         # Return the id in
-        return committed['exercise_id']
+        return cur.lastrowid
      #ACCESSING THE USER table
     def get_users(self):
         """

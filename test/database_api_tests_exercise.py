@@ -33,11 +33,10 @@ EXERCISE2_MODIFIED = {
 }
 
 EXERCISE3_create = {
-    'exercise_id': 15,
-    'user_id': 10,
+    'exercise_id': 4,
+    'user_id': 1,
     'title': 'New Exercise',
     'description': 'Description new',
-    'sub_date': 1519081565,
     'initial_state': 'new state',
     'list_moves': 'new new'
 }
@@ -133,9 +132,9 @@ class ExerciseApiDbTestCase(unittest.TestCase):
         print('(' + self.test_exercise_create_valid.__name__ + ')',
               self.test_exercise_create_valid.__doc__)
 
-        exercise = self.connection.create_exercise(10, "New Exercise", "Description new", "new state", "new new")
-        self.assertEqual(exercise, 3)
-        self.assertDictEqual(self.connection.get_exercise(3), EXERCISE3_create)
+        exercise = self.connection.create_exercise("New Exercise", "Description new", "Mystery", "new state", "new new")
+        self.assertEqual(exercise, 4)
+        self.assertDictContainsSubset(EXERCISE3_create, self.connection.get_exercise(4))
 
 
 if __name__ == '__main__':
