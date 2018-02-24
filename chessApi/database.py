@@ -171,14 +171,14 @@ class Connection(object):
             print("Error %s:" % excp.args[0])
             return False
 
-    def _create_user_object(self, row):
+    @staticmethod
+    def _create_user_object(row):
         """
         It takes a database Row and transform it into a python dictionary.
 
         :param row: The row obtained from the database.
         :type row: sqlite3.Row
         :return: a dictionary with the following format:
-            where:
 
             * ``registrationdate``: UNIX timestamp when the user registered in
                                  the system (long integer)
@@ -188,7 +188,8 @@ class Connection(object):
         """
         return {'registrationdate': (row['reg_date']), 'nickname': row['nickname'], 'email': row['email']}
 
-    def _create_user_list_object(self, row):
+    @staticmethod
+    def _create_user_list_object(row):
         """
         :param row: The row obtained from the database.
         :type row: sqlite3.Row
@@ -197,6 +198,44 @@ class Connection(object):
 
         """
         return {'registrationdate': row['reg_date'], 'nickname': row['nickname']}
+
+    @staticmethod
+    def _create_exercise_object(row):
+        """
+        Takes a database exercise row, and converts it to a python dictionary.
+
+        :param row: The row obtained from the database.
+        :type row: sqlite3.Row
+
+        :return: dictionary with the following format:
+            * ``exercise_id``: unique id number of the exercise
+            * ``user_id``: id of the user who submitted this exercise
+            * ``title``: title of the exercise
+            * ``description``: description of the exercise
+            * ``sub_date``: the UNIX timestamp of the exercise submission
+            * ``initial_state``: the FEN code of the initial state of the exercise
+            * ``list_moves``: PGN string of the exercise solution
+        """
+        return {
+            'exercise_id': row['exercise_id'],
+            'user_id': row['user_id'],
+            'title': row['title'],
+            'description': row['description'],
+            'sub_date': row['sub_date'],
+            'initial_state': row['initial_state'],
+            'list_moves': row['list_moves']
+        }
+
+    @staticmethod
+    def _create_exercise_list_object(row):
+        """
+        :param row: The row obtained from the database.
+        :type row: sqlite3.Row
+        :return: a dictionary with the keys ``exercise_id``, ``title`` and
+            ``user_id``
+
+        """
+        return {'exercise_id': row['exercise_id'], 'title': row['title'], 'user_id': row['user_id']}
 
     def get_exercise(self, exercise_id):
         """
@@ -217,15 +256,36 @@ class Connection(object):
         row = cur.fetchone()
 
         # row to dictionary
-        return None if not row else {
-            'exercise_id': row['exercise_id'],
-            'user_id': row['user_id'],
-            'title': row['title'],
-            'description': row['description'],
-            'sub_date': row['sub_date'],
-            'initial_state': row['initial_state'],
-            'list_moves': row['list_moves']
-        }
+        return None if not row else self._create_exercise_object(row)
+
+    def get_exercises(self, nickname):
+        """
+        Returns a list of exercises belonging to a particular user.
+        :param nickname: returning the exercises belonging to that user
+        :return: A list of dictionaries with structure defined in :py:meth:`_create_exercise_list_object`,
+            or None if the user does not exists or does not have any submitted exercises
+
+        """
+        self.set_foreign_keys_support()
+        self.con.row_factory = sqlite3.Row
+        cur = self.con.cursor()
+        query1 = 'SELECT user_id FROM users WHERE nickname = ?'
+        pvalue = (nickname,)
+        cur.execute(query1, pvalue)
+        row = cur.fetchone()
+        if not row:
+            return None
+        user_id = row['user_id']
+        query2 = 'SELECT * FROM exercises WHERE user_id = ?'
+        pvalue = (user_id,)
+        cur.execute(query2, pvalue)
+        rows = cur.fetchall()
+        if not rows:
+            return None
+        exercises = []
+        for row in rows:
+            exercises.append(self._create_exercise_list_object(row))
+        return exercises
 
     def delete_exercise(self, exercise_id):
         """

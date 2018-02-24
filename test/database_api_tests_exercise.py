@@ -31,8 +31,7 @@ EXERCISE2_MODIFIED = {
     'list_moves': 'dsa'
 
 }
-
-EXERCISE3_create = {
+EXERCISE_CREATE = {
     'exercise_id': 4,
     'user_id': 1,
     'title': 'New Exercise',
@@ -40,6 +39,8 @@ EXERCISE3_create = {
     'initial_state': 'new state',
     'list_moves': 'new new'
 }
+USER1_NICKNAME = 'Mystery'
+USER2_NICKNAME = 'AxelW'
 
 
 class ExerciseApiDbTestCase(unittest.TestCase):
@@ -105,6 +106,25 @@ class ExerciseApiDbTestCase(unittest.TestCase):
 
         self.assertIsNone(self.connection.get_exercise(100))
 
+    def test_exercises_get_valid(self):
+        """Checks if get_exercises works for existing nickname"""
+        print('('+self.test_exercises_get_valid.__name__+')',
+              self.test_exercises_get_valid.__doc__)
+        exercises = self.connection.get_exercises(USER1_NICKNAME)
+        self.assertEqual(2, len(exercises))
+
+    def test_exercises_get_invalid(self):
+        """Checks if get_exercises returns None for non-existing nickname"""
+        print('('+self.test_exercises_get_invalid.__name__+')',
+              self.test_exercises_get_invalid.__doc__)
+        self.assertIsNone(self.connection.get_exercises("CarrotHead"))
+
+    def test_exercises_get_empty(self):
+        """Checks if get_exercises return None for user without submitted exercises"""
+        print('('+self.test_exercises_get_empty.__name__+')',
+              self.test_exercises_get_empty.__doc__)
+        self.assertIsNone(self.connection.get_exercises(USER2_NICKNAME))
+
     def test_exercise_delete_valid(self):
         """Checks if an existing exercise can be deleted"""
         print('('+self.test_exercise_delete_valid.__name__+')',
@@ -144,7 +164,7 @@ class ExerciseApiDbTestCase(unittest.TestCase):
 
         exercise = self.connection.create_exercise("New Exercise", "Description new", "Mystery", "new state", "new new")
         self.assertEqual(exercise, 4)
-        self.assertDictContainsSubset(EXERCISE3_create, self.connection.get_exercise(4))
+        self.assertDictContainsSubset(EXERCISE_CREATE, self.connection.get_exercise(4))
 
 
 if __name__ == '__main__':
