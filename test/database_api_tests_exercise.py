@@ -41,8 +41,18 @@ EXERCISE3_create = {
     'list_moves': 'new new'
 }
 
+
 class ExerciseApiDbTestCase(unittest.TestCase):
     """Test cases for the Exercise related methods."""
+    @classmethod
+    def setUpClass(cls):
+        """ Creates the database structure. Removes first any preexisting
+            database file
+        """
+        print("Testing ", cls.__name__)
+        ENGINE.remove_database()
+        ENGINE.create_tables()
+
     @classmethod
     def tearDownClass(cls):
         """Remove the testing database"""

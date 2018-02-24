@@ -8,7 +8,6 @@ Provides the database API to access the forum persistent data.
 from datetime import datetime
 import sqlite3
 import os
-import re
 import time
 
 DEFAULT_DB_PATH = 'db/chessApi.db'
@@ -202,8 +201,6 @@ class Connection(object):
             print("Error %s:" % excp.args[0])
             return False
 
-    # Helpers for users
-
     def _create_user_object(self, row):
         """
         It takes a database Row and transform it into a python dictionary.
@@ -361,7 +358,7 @@ class Connection(object):
 
         # Return the id in
         return cur.lastrowid
-     #ACCESSING THE USER table
+
     def get_users(self):
         """
         Extracts all users in the database.

@@ -3,7 +3,9 @@ Created on 22.02.2018
 @author: weiping
 
 """
-import unittest, sqlite3
+import sqlite3
+import unittest
+
 from chessApi import database
 
 DB_PATH = 'db/chessApi_test.db'
@@ -55,7 +57,7 @@ class UserDBAPITestCase(unittest.TestCase):
             ENGINE.populate_tables()
             # Creates a Connection instance to use the API
             self.connection = ENGINE.connect()
-        except Exception as e:
+        except Exception:
             # For instance if there is an error while populating the tables
             ENGINE.clear()
 
