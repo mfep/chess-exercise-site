@@ -21,7 +21,8 @@ USER2_ID = 2
 USER2 = {'registrationdate': 1357724086, 'nickname': USER2_NICKNAME, 'email': 'axelw@mymail.com'}
 
 NEW_USER_NICKNAME = 'sully'
-NEW_USER = {'email': 'sully@rda.com'}
+NEW_USER_MAIL = 'sully@rda.com'
+NEW_USER = {'email': NEW_USER_MAIL}
 
 USER_WRONG_NICKNAME = 'Batty'
 INITIAL_SIZE = 5
@@ -130,6 +131,16 @@ class UserDBAPITestCase(unittest.TestCase):
             elif user['nickname'] == USER2_NICKNAME:
                 self.assertDictContainsSubset(user, USER2)
 
+    def test_get_users_empty(self):
+        """
+        Test that get_users return None when no users is in the database.
+
+        """
+        print('(' + self.test_get_users_empty.__name__ + ')',
+              self.test_get_users_empty.__doc__)
+        ENGINE.clear()
+        self.assertListEqual([], self.connection.get_users())
+
     def test_delete_user(self):
         """
         Test that the user Mystery is deleted
@@ -158,7 +169,7 @@ class UserDBAPITestCase(unittest.TestCase):
         """
         print('(' + self.test_append_user.__name__ + ')',
               self.test_append_user.__doc__)
-        nickname = self.connection.append_user(NEW_USER_NICKNAME, NEW_USER)
+        nickname = self.connection.append_user(NEW_USER_NICKNAME, NEW_USER_MAIL)
         self.assertIsNotNone(nickname)
         self.assertEqual(nickname, NEW_USER_NICKNAME)
         # Check that the messages has been really modified through a get
@@ -172,7 +183,7 @@ class UserDBAPITestCase(unittest.TestCase):
         """
         print('(' + self.test_append_existing_user.__name__ + ')',
               self.test_append_existing_user.__doc__)
-        nickname = self.connection.append_user(USER1_NICKNAME, NEW_USER)
+        nickname = self.connection.append_user(USER1_NICKNAME, NEW_USER_MAIL)
         self.assertIsNone(nickname)
 
 

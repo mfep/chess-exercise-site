@@ -113,36 +113,6 @@ class Engine(object):
             cur = con.cursor()
             cur.executescript(sql)
 
-    def create_users_table(self):
-        """
-        Create the table ``users`` programmatically, without using .sql file.
-
-        Print an error message in the console if it could not be created.
-
-        :return: ``True`` if the table was successfully created or ``False``
-            otherwise.
-
-        """
-        keys_on = 'PRAGMA foreign_keys = ON'
-        stmnt = 'CREATE TABLE users(user_id INTEGER PRIMARY KEY,\
-                                    nickname TEXT UNIQUE, reg_date INTEGER,\
-                                    email TEXT,\
-                                    UNIQUE(user_id, nickname))'
-        # Connects to the database. Gets a connection object
-        con = sqlite3.connect(self.db_path)
-        with con:
-            # Get the cursor object.
-            # It allows to execute SQL code and traverse the result set
-            cur = con.cursor()
-            try:
-                cur.execute(keys_on)
-                # execute the statement
-                cur.execute(stmnt)
-            except sqlite3.Error as excp:
-                print("Error %s:" % excp.args[0])
-                return False
-        return True
-
 
 class Connection(object):
     """
@@ -208,9 +178,6 @@ class Connection(object):
         :param row: The row obtained from the database.
         :type row: sqlite3.Row
         :return: a dictionary with the following format:
-
-            .. code-block:: javascript
-
             where:
 
             * ``registrationdate``: UNIX timestamp when the user registered in
@@ -219,13 +186,10 @@ class Connection(object):
             * ``email``: current email of the user.
 
         """
-        reg_date = row['reg_date']
-        return {'registrationdate': reg_date, 'nickname': row['nickname'], 'email': row['email']
-                }
+        return {'registrationdate': (row['reg_date']), 'nickname': row['nickname'], 'email': row['email']}
 
     def _create_user_list_object(self, row):
         """
-
         :param row: The row obtained from the database.
         :type row: sqlite3.Row
         :return: a dictionary with the keys ``registrationdate`` and
@@ -238,7 +202,7 @@ class Connection(object):
         """
         Extracts exercise from database.
 
-        :param exercise_id: The identifier number of the message.
+        :param exercise_id: The identifier number of the exercise.
         :return: A dictionary with the exercise data,
             or None if no exercise with that id exists.
 
@@ -285,17 +249,14 @@ class Connection(object):
 
     def modify_exercise(self, exerciseid, title, description, initial_state, list_moves):
         """
-        Modify the title, the description and the editor of the message with id
+        Modify the title, the description the initial state of the message with given id.
         ``exerciseid``
-        :param int exerciseid: The id of the message to remove. Note that
-            messageid is a string with format msg-\d{1,3}
-        :param str title: the exercise's title
-        :param str description: the exercise's description
-        :param str initial_state: The initial state of the pieces on the chess board.
-        :param str list_moves: The right list of moves.
-        :return: the id of the edited exercise or None if the exercise was
-              not found.
-        :raises ValueError: if the exerciseid has a wrong format.
+        :param int exerciseid: The id of the exercise to modify.
+        :param str title: the exercise's new title
+        :param str description: the exercise's new description
+        :param str initial_state: The initial state of the pieces on the chess board (new).
+        :param str list_moves: The right list of moves (new).
+        :return: the id of the edited exercise or None if the exercise was not found.
         """
         stmnt = 'UPDATE exercises SET title=:title , description=:description, initial_state=:initial_state,\
          list_moves=:list_moves  WHERE exercise_id=:exercise_id'
@@ -327,15 +288,13 @@ class Connection(object):
         :param str initial_state: The initial state of chess pieces on the board.
         :param str list_moves: The right moves which complete the exercise correctly.
         :param str creator: the username of the person that created the exercise.
-        :return: the id of the created exercise or None if the message was not
-            found.
-         """
+        :return: the id of the created exercise or None if the message was not found.
+        """
         # SQL Statement for getting the user id
         query1 = 'SELECT user_id from users WHERE nickname = ?'
 
         # SQL Statement for inserting the data
-        stmnt = 'INSERT INTO exercises (user_id,title,description,sub_date,initial_state, \
-                                   list_moves) \
+        stmnt = 'INSERT INTO exercises (user_id,title,description,sub_date,initial_state, list_moves) \
                                    VALUES(?,?,?,?,?,?)'
         user_id = None
         timestamp = time.mktime(datetime.now().timetuple())
@@ -454,27 +413,14 @@ class Connection(object):
             return False
         return True
 
-    def append_user(self, nickname, user):
+    def append_user(self, nickname, email):
         """
         Create a new user in the database.
 
-        :param str nickname: The nickname of the user to modify
-        :param dict user: a dictionary with the information to be modified. The
-                dictionary has the following structure:
+        :param str nickname: The nickname of the new user
+        :param str email: The email address of the new user
 
-                .. code-block:: javascript
-
-                where:
-
-                * ``registrationdate``: UNIX timestamp when the user registered
-                    in the system (long integer)
-                * ``email``: current email of the user.
-
-            Note that all values are string if they are not otherwise indicated.
-
-        :return: the nickname of the modified user or None if the
-            ``nickname`` passed as parameter is not  in the database.
-        :raise ValueError: if the user argument is not well formed.
+        :return: the nickname of the created user or None if the user could not been added to the database.
 
         """
         # Create the SQL Statements
@@ -486,7 +432,6 @@ class Connection(object):
         # temporal variables for user table
         # timestamp will be used for reg_date.
         timestamp = int(time.time())
-        _email = user.get('email', None)
 
         # Activate foreign key support
         self.set_foreign_keys_support()
@@ -502,7 +447,7 @@ class Connection(object):
         if row is None:
             # Add the row in users table
             # Execute the statement
-            pvalue = (nickname, timestamp, _email)
+            pvalue = (nickname, timestamp, email)
             cur.execute(query2, pvalue)
             # Extrat the rowid => user-id
 
