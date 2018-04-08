@@ -11,6 +11,7 @@ from chessApi import database
 
 MASON = 'application/vnd.mason+json'
 JSON = 'application/json'
+EXERCISE_PROFILE = '/profiles/exercise-profile/'
 ERROR_PROFILE = '/profiles/error-profile'
 LINK_RELATIONS = '/api/link-relations/'
 
@@ -21,13 +22,71 @@ api = Api(app)
 
 
 class ChessApiObject(dict):
-    def __init__(self, **kwargs):
+    def __init__(self, self_href, profile, add_namespace=True, **kwargs):
         super(ChessApiObject, self).__init__(**kwargs)
-        self['@namespaces'] = {
-            'chessapi': {
-                'name': LINK_RELATIONS
+        if add_namespace:
+            self['@namespaces'] = {
+                'chessapi': {
+                    'name': LINK_RELATIONS
+                }
+            }
+        self['@controls'] = {}
+        self.add_control('self', self_href)
+        self.add_control('profile', profile)
+
+    def add_control(self, name, href, method = None):
+        self['@controls'][name] = {
+            'href': href
+        }
+        if method:
+            self['@controls'][name]['method'] = method
+
+    def add_exercise_control(self):
+        self['@controls']['chessapi:add-exercise'] = {
+            'title': 'Submit a new exercise',
+            'href': api.url_for(Exercises),
+            'encoding': 'json',
+            'method': 'POST',
+            'schema': {
+                'type': 'object',
+                'properties': {
+                    'headline': {
+                        'title': 'Headline',
+                        'description': 'Exercise title',
+                        'type': 'string'
+                    },
+                    'about': {
+                        'title': 'About',
+                        'description': 'Exercise description',
+                        'type': 'string'
+                    },
+                    'initial-state': {
+                        'title': 'Initial state',
+                        'description': 'FEN code of the initial board state',
+                        'type': 'string'
+                    },
+                    'list-moves': {
+                        'title': 'List of moves',
+                        'description': 'PGN code movelist of the exercise solution',
+                        'type': 'string'
+                    },
+                    'author': {
+                        'title': 'Author',
+                        'description': 'Submitter of the exercise',
+                        'type': 'string'
+                    },
+                    'author-email': {
+                        'title': 'Author Email',
+                        'description': 'The author\'s email address. Used for authentication.',
+                        'type': 'string'
+                    }
+                },
+                'required': ['headline', 'intial-state', 'list-moves', 'author', 'author-email']
             }
         }
+
+    def add_users_all_control(self):
+        self.add_control('chessapi:users-all', api.url_for(Users), 'GET')
 
 
 def create_error_response(status_code, title, message=None):
@@ -123,7 +182,20 @@ class Submissions(Resource):
 
 class Exercises(Resource):
     def get(self):
-        pass
+        envelope = ChessApiObject(api.url_for(Exercises), EXERCISE_PROFILE)
+        envelope.add_exercise_control()
+        envelope.add_users_all_control()
+
+        exercises_from_db = g.con.get_exercises()
+        items = []
+        for exercise_db in exercises_from_db:
+            ex = ChessApiObject(api.url_for(Exercise, exerciseid=exercise_db['exercise_id']), EXERCISE_PROFILE, False)
+            ex['headline'] = exercise_db['title']
+            ex['author'] = exercise_db['author']
+            items.append(ex)
+
+        envelope['items'] = items
+        return Response(json.dumps(envelope), 200, mimetype=MASON+';'+EXERCISE_PROFILE)
 
     def post(self):
         pass

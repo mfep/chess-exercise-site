@@ -227,15 +227,32 @@ class Connection(object):
         }
 
     @staticmethod
-    def _create_exercise_list_object(row):
+    def _create_exercise_list_object(row, nickname):
         """
         :param row: The row obtained from the database.
         :type row: sqlite3.Row
         :return: a dictionary with the keys ``exercise_id``, ``title`` and
-            ``user_id``
+            ``nickname``
 
         """
-        return {'exercise_id': row['exercise_id'], 'title': row['title'], 'user_id': row['user_id']}
+        return {'exercise_id': row['exercise_id'], 'title': row['title'], 'author': nickname}
+
+    def _fetch_nickname(self, user_id):
+        """
+        Queries the database to find the nickname belonging to a particular user_id.
+        :param user_id: The user id.
+        :return: The nickname of the user with the id.
+        """
+        self.set_foreign_keys_support()
+        self.con.row_factory = sqlite3.Row
+        cur = self.con.cursor()
+        query = 'SELECT nickname FROM users WHERE user_id = ?'
+        pvalue = (user_id,)
+        cur.execute(query, pvalue)
+        row = cur.fetchone()
+        if not row:
+            return None
+        return row['nickname']
 
     def get_exercise(self, exercise_id):
         """
@@ -258,33 +275,37 @@ class Connection(object):
         # row to dictionary
         return None if not row else self._create_exercise_object(row)
 
-    def get_exercises(self, nickname):
+    def get_exercises(self, nickname=None):
         """
-        Returns a list of exercises belonging to a particular user.
-        :param nickname: returning the exercises belonging to that user
+        Returns a list of exercises belonging to a particular user or all exercises.
+        :param nickname: returning the exercises belonging to that user. Or if None, returning all exercises.
         :return: A list of dictionaries with structure defined in :py:meth:`_create_exercise_list_object`,
-            or None if the user does not exists or does not have any submitted exercises
+            or None if the user does not exists or does not have any submitted exercises or no exercises exist on server
 
         """
         self.set_foreign_keys_support()
         self.con.row_factory = sqlite3.Row
         cur = self.con.cursor()
-        query1 = 'SELECT user_id FROM users WHERE nickname = ?'
-        pvalue = (nickname,)
-        cur.execute(query1, pvalue)
-        row = cur.fetchone()
-        if not row:
-            return None
-        user_id = row['user_id']
-        query2 = 'SELECT * FROM exercises WHERE user_id = ?'
-        pvalue = (user_id,)
-        cur.execute(query2, pvalue)
+        if nickname:
+            query1 = 'SELECT user_id FROM users WHERE nickname = ?'
+            pvalue = (nickname,)
+            cur.execute(query1, pvalue)
+            row = cur.fetchone()
+            if not row:
+                return None
+            user_id = row['user_id']
+            query2 = 'SELECT * FROM exercises WHERE user_id = ?'
+            pvalue = (user_id,)
+            cur.execute(query2, pvalue)
+        else:
+            query = 'SELECT * FROM exercises'
+            cur.execute(query)
         rows = cur.fetchall()
         if not rows:
             return None
         exercises = []
         for row in rows:
-            exercises.append(self._create_exercise_list_object(row))
+            exercises.append(self._create_exercise_list_object(row, self._fetch_nickname(row['user_id'])))
         return exercises
 
     def delete_exercise(self, exercise_id):
