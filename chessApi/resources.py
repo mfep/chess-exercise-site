@@ -166,7 +166,6 @@ def connect_db():
     The connection is stored in the application context variable flask.g .
     Hence it is accessible from the request object.
     """
-
     g.con = app.config["Engine"].connect()
 
 
@@ -177,7 +176,6 @@ def close_connection(exc):
     Check if the connection is created. It migth be exception appear before
     the connection is created.
     """
-
     if hasattr(g, "con"):
         g.con.close()
 
@@ -208,10 +206,12 @@ class Submissions(Resource):
 
 class Exercises(Resource):
     def get(self):
+        # create envelope and add controls to it
         envelope = ChessApiObject(api.url_for(Exercises), EXERCISE_PROFILE)
         envelope.add_exercise_control()
         envelope.add_users_all_control()
 
+        # get the list of exercises from the database and add them to the envelope - with a minimal format
         exercises_from_db = g.con.get_exercises()
         items = []
         for exercise_db in exercises_from_db:
