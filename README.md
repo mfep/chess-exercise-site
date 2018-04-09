@@ -20,7 +20,7 @@ Running the tests
 -----------------
 In the project root folder:
 
-To run all tests
+To run **all** tests (database + API)
 
 - `python -m test.all_tests`
 
@@ -28,3 +28,7 @@ To run the database unit tests (database populated automatically)
 
 - `python -m test.database_api_tests_exercise`
 - `python -m test.database_api_tests_user`
+
+To run API resource unit tests
+
+- `python -m test.resource_api_tests`
