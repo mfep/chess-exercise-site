@@ -157,7 +157,6 @@ def _check_author_email(nickname, submitted_mail):
 
 
 def _check_chess_data(initial_state, list_moves):
-    # TODO test this with real data
     # TODO update documentation. we're not using PGN anymore, but a simpler notation
     # which consists of comma-separated SAN entries
     try:
@@ -171,6 +170,11 @@ def _check_chess_data(initial_state, list_moves):
         return False
     # valid exercise ends with checkmate
     return board.is_checkmate()
+
+
+def _check_free_exercise_title(title):
+    exercises_db = g.con.get_exercises()
+    return not any(map(lambda ex: ex['title'] == title,exercises_db))
 
 
 def create_error_response(status_code, title, message=None):
@@ -304,7 +308,10 @@ class Exercises(Resource):
         # about is not required
         about = request_body['about'] if 'about' in request_body else None
 
-        # TODO currently exercise name is unique. check or change the rule
+        # check if exercise title exists already
+        if not _check_free_exercise_title(headline):
+            return create_error_response(400, 'Existing exercise headline',
+                                         'The provided headline already exists in the database')
 
         # check if nickname exists
         if not _check_existing_nickname(author):
@@ -317,7 +324,7 @@ class Exercises(Resource):
 
         # check if sent data is valid chess-wise
         if not _check_chess_data(initial_state, list_moves):
-            return create_error_response(400, 'Wrong request format', 'provided chess data is not valid')
+            return create_error_response(400, 'Wrong request format', 'Provided chess data is not valid')
 
         # everything is ok - add the exercise to the database
         new_id = g.con.create_exercise(headline, about, author, initial_state, list_moves)
