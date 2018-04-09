@@ -12,6 +12,12 @@ import chessApi.resources as resources
 DB_PATH = 'db/chessApi_test.db'
 ENGINE = database.Engine(DB_PATH)
 
+DEFAULT_BOARD_FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
+CUSTOM_BOARD_FEN = 'rnbqkbnr/pppppppp/5q2/8/8/5P2/PPPPP1PP/RNBQKBNR w KQkq - 0 1'
+FOOLS_MATE_MOVES = 'f3,e5,g4,Qh4#'
+NON_CHECKMATE_MOVES = 'Nc3,d5,Ne4,dxe4'
+CUSTOM_MOVES = 'g4,Qh4#'
+
 resources.app.config['Testing'] = True
 resources.app.config['SERVER_NAME'] = 'localhost:5000'
 resources.app.config.update({'Engine': ENGINE})
@@ -43,6 +49,30 @@ class ResourcesApiTestCase(unittest.TestCase):
 
 class ExercisesTestCase(ResourcesApiTestCase):
     url = '/api/exercises/'
+
+    def test_check_chess_data_default_board(self):
+        """Tests if checkmate from default board state is reported as correct"""
+        print('(' + self.test_check_chess_data_default_board.__name__ + ')',
+              self.test_check_chess_data_default_board.__doc__)
+        self.assertTrue(resources._check_chess_data(DEFAULT_BOARD_FEN, FOOLS_MATE_MOVES))
+
+    def test_check_chess_data_custom_board(self):
+        """Tests if checkmate from custom initial state is reported as correct"""
+        print('(' + self.test_check_chess_data_custom_board.__name__ + ')',
+              self.test_check_chess_data_custom_board.__doc__)
+        self.assertTrue(resources._check_chess_data(CUSTOM_BOARD_FEN, CUSTOM_MOVES))
+
+    def test_check_chess_data_nonsense_board(self):
+        """Tests if nonsense board is reported as incorrect"""
+        print('(' + self.test_check_chess_data_nonsense_board.__name__ + ')',
+              self.test_check_chess_data_nonsense_board.__doc__)
+        self.assertFalse(resources._check_chess_data(DEFAULT_BOARD_FEN[3:-2], FOOLS_MATE_MOVES))
+
+    def test_check_chess_data_non_checkmate(self):
+        """Tests if an exercise not resulting in checkmate is reported as invalid"""
+        print('(' + self.test_check_chess_data_non_checkmate.__name__ + ')',
+              self.test_check_chess_data_non_checkmate.__doc__)
+        self.assertFalse(resources._check_chess_data(DEFAULT_BOARD_FEN, NON_CHECKMATE_MOVES))
 
     def test_url(self):
         """Checks that the URL points to the right resource"""

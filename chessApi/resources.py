@@ -6,7 +6,6 @@ Defines the REST resources used by the API.
 """
 import json
 import chess.pgn, chess
-from io import StringIO
 from flask import Flask, request, Response, g, _request_ctx_stack
 from flask_restful import Resource, Api
 from chessApi import database
@@ -159,16 +158,18 @@ def _check_author_email(nickname, submitted_mail):
 
 def _check_chess_data(initial_state, list_moves):
     # TODO test this with real data
+    # TODO update documentation. we're not using PGN anymore, but a simpler notation
+    # which consists of comma-separated SAN entries
     try:
+        # check if initial state is valid
         board = chess.Board(initial_state)
+        # test the list of moves
+        moves = list_moves.split(',')
+        for san_move in moves:
+            board.push_san(san_move)
     except ValueError:
         return False
-    pgn_stream = StringIO(list_moves)
-    game = chess.pgn.read_game(pgn_stream)
-    if not game:
-        return False
-    for move in game.main_line():
-        board.push(move)
+    # valid exercise ends with checkmate
     return board.is_checkmate()
 
 
@@ -303,7 +304,7 @@ class Exercises(Resource):
         # about is not required
         about = request_body['about'] if 'about' in request_body else None
 
-        # TODO currently exercise name is unique
+        # TODO currently exercise name is unique. check or change the rule
 
         # check if nickname exists
         if not _check_existing_nickname(author):
@@ -323,7 +324,7 @@ class Exercises(Resource):
         if not new_id:
             return create_error_response(500, 'Problem with the database', 'Cannot access database')
         url = api.url_for(Exercise, exerciseid=new_id)
-        return Response(201, headers={'Location': url})
+        return Response(status=201, headers={'Location': url})
 
 
 class Exercise(Resource):
