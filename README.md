@@ -3,6 +3,7 @@ Dependencies
 
 - sqlite3 : standard, executable provided
 - unittest : standard
+- [python-chess](https://github.com/niklasf/python-chess) : `pip install python-chess`
 
 Populating the database
 -----------------------

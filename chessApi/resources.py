@@ -5,6 +5,8 @@ Defines the REST resources used by the API.
 
 """
 import json
+import chess.pgn, chess
+from io import StringIO
 from flask import Flask, request, Response, g, _request_ctx_stack
 from flask_restful import Resource, Api
 from chessApi import database
@@ -87,6 +89,29 @@ class ChessApiObject(dict):
 
     def add_users_all_control(self):
         self.add_control('chessapi:users-all', api.url_for(Users), 'GET')
+
+
+def _check_existing_nickname(nickname):
+    return g.con.get_user(nickname) is not None
+
+def _check_author_email(nickname, submitted_mail):
+    user = g.con.get_user(nickname)
+    return user['email'] == submitted_mail
+
+
+def _check_chess_data(initial_state, list_moves):
+    # TODO test this with real data
+    try:
+        board = chess.Board(initial_state)
+    except ValueError:
+        return False
+    pgn_stream = StringIO(list_moves)
+    game = chess.pgn.read_game(pgn_stream)
+    if not game:
+        return False
+    for move in game.main_line():
+        board.push(move)
+    return board.is_checkmate()
 
 
 def create_error_response(status_code, title, message=None):
@@ -198,7 +223,36 @@ class Exercises(Resource):
         return Response(json.dumps(envelope), 200, mimetype=MASON+';'+EXERCISE_PROFILE)
 
     def post(self):
-        pass
+        # TODO update error messages in apiary
+        def malformed():
+            return create_error_response(400, 'Wrong request format',
+                                         'Be sure you include exercise headline,'
+                                         'author, author-mail, initial-state and list-moves.')
+
+        if JSON != request.headers.get('Content-Type',''):
+            return create_error_response(400, 'Wrong request format', JSON+' is required')
+        request_body = request.get_json(force=True)
+        try:
+            headline = request_body['headline']
+            author = request_body['author']
+            author_email = request_body['author-email']
+            initial_state = request_body['initial-state']
+            list_moves = request_body['list-moves']
+        except KeyError:
+            return malformed()
+        about = request_body['about'] if 'about' in request_body else None
+        if not _check_existing_nickname(author):
+            return create_error_response(404, 'User not found', 'The provided nickname does not exist in the database.')
+        if not _check_author_email(author, author_email):
+            return create_error_response(401, 'Wrong authentication',
+                                         'The provided email address does not match the one in the database.')
+        if not _check_chess_data(initial_state, list_moves):
+            return create_error_response(400, 'Wrong request format', 'provided chess data is not valid')
+        new_id = g.con.create_exercise(headline, about, author, initial_state, list_moves)
+        if not new_id:
+            return create_error_response(500, 'Problem with the database', 'Cannot access database')
+        url = api.url_for(Exercise, exerciseid=new_id)
+        return Response(201, headers={'Location': url})
 
 
 class Exercise(Resource):
