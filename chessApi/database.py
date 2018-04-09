@@ -171,8 +171,7 @@ class Connection(object):
             print("Error %s:" % excp.args[0])
             return False
 
-    @staticmethod
-    def _create_user_object(row):
+    def _create_user_object(self, row):
         """
         It takes a database Row and transform it into a python dictionary.
 
@@ -188,8 +187,7 @@ class Connection(object):
         """
         return {'registrationdate': (row['reg_date']), 'nickname': row['nickname'], 'email': row['email']}
 
-    @staticmethod
-    def _create_user_list_object(row):
+    def _create_user_list_object(self, row):
         """
         :param row: The row obtained from the database.
         :type row: sqlite3.Row
@@ -199,8 +197,7 @@ class Connection(object):
         """
         return {'registrationdate': row['reg_date'], 'nickname': row['nickname']}
 
-    @staticmethod
-    def _create_exercise_object(row):
+    def _create_exercise_object(self, row):
         """
         Takes a database exercise row, and converts it to a python dictionary.
 
@@ -218,7 +215,7 @@ class Connection(object):
         """
         return {
             'exercise_id': row['exercise_id'],
-            'user_id': row['user_id'],
+            'author': self._fetch_nickname(row['user_id']),
             'title': row['title'],
             'description': row['description'],
             'sub_date': row['sub_date'],
@@ -226,8 +223,7 @@ class Connection(object):
             'list_moves': row['list_moves']
         }
 
-    @staticmethod
-    def _create_exercise_list_object(row, nickname):
+    def _create_exercise_list_object(self, row):
         """
         :param row: The row obtained from the database.
         :type row: sqlite3.Row
@@ -235,9 +231,9 @@ class Connection(object):
             ``nickname``
 
         """
-        return {'exercise_id': row['exercise_id'], 'title': row['title'], 'author': nickname}
+        return {'exercise_id': row['exercise_id'], 'title': row['title'], 'author': self._fetch_nickname(row['user_id'])}
 
-    def fetch_nickname(self, user_id):
+    def _fetch_nickname(self, user_id):
         """
         Queries the database to find the nickname belonging to a particular user_id.
         :param user_id: The user id.
@@ -305,7 +301,7 @@ class Connection(object):
             return None
         exercises = []
         for row in rows:
-            exercises.append(self._create_exercise_list_object(row, self.fetch_nickname(row['user_id'])))
+            exercises.append(self._create_exercise_list_object(row))
         return exercises
 
     def delete_exercise(self, exercise_id):

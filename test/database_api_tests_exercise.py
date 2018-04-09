@@ -14,7 +14,7 @@ ENGINE = database.Engine(DB_PATH)
 INITIAL_EXERCISE_SIZE = 3
 EXERCISE1 = {
     'exercise_id': 1,
-    'user_id': 1,
+    'author': 'Mystery',
     'title': 'Easy one',
     'description': 'No need to explain this.',
     'sub_date': 1519061565,
@@ -23,7 +23,7 @@ EXERCISE1 = {
 }
 EXERCISE2_MODIFIED = {
     'exercise_id': 2,
-    'user_id': 1,
+    'author': 'Mystery',
     'title': 'Modified Title',
     'description': 'Description',
     'sub_date': 1443827483,
@@ -33,7 +33,7 @@ EXERCISE2_MODIFIED = {
 }
 EXERCISE_CREATE = {
     'exercise_id': 4,
-    'user_id': 1,
+    'author': 'Mystery',
     'title': 'New Exercise',
     'description': 'Description new',
     'initial_state': 'new state',

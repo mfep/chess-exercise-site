@@ -333,21 +333,17 @@ class Exercise(Resource):
         if not exercise_db:
             return create_error_response(404, 'Exercise does not exist', 'There is no exercise with id ' + exerciseid)
 
-        # fetch author nickname
-        # TODO what about not exposing any user_id from the database???
-        author = g.con.fetch_nickname(exercise_db['user_id'])
-
         # create envelope and add controls
         url = api.url_for(Exercise, exerciseid=exerciseid)
         envelope = ChessApiObject(url, EXERCISE_PROFILE)
-        envelope.add_control('author', api.url_for(User, nickname=author))
+        envelope.add_control('author', api.url_for(User, nickname=exercise_db['author']))
         envelope.add_control('collection', api.url_for(Exercises))
         envelope.add_edit_exercise_control(exerciseid)
         envelope.add_control('chessapi:delete', url, 'DELETE')
         envelope.add_solver_control(exerciseid)
         envelope['initial-state'] = exercise_db['initial_state']
         envelope['list-moves'] = exercise_db['list_moves']
-        envelope['author'] = author
+        envelope['author'] = exercise_db['author']
         envelope['dateCreated'] = exercise_db['sub_date']
         envelope['headline'] = exercise_db['title']
         envelope['about'] = exercise_db['description']
