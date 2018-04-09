@@ -94,6 +94,7 @@ class ChessApiObject(dict):
 def _check_existing_nickname(nickname):
     return g.con.get_user(nickname) is not None
 
+
 def _check_author_email(nickname, submitted_mail):
     user = g.con.get_user(nickname)
     return user['email'] == submitted_mail
@@ -224,14 +225,13 @@ class Exercises(Resource):
 
     def post(self):
         # TODO update error messages in apiary
-        def malformed():
-            return create_error_response(400, 'Wrong request format',
-                                         'Be sure you include exercise headline,'
-                                         'author, author-mail, initial-state and list-moves.')
 
+        # Check if json
         if JSON != request.headers.get('Content-Type',''):
             return create_error_response(400, 'Wrong request format', JSON+' is required')
         request_body = request.get_json(force=True)
+
+        # check if has every required field
         try:
             headline = request_body['headline']
             author = request_body['author']
@@ -239,15 +239,29 @@ class Exercises(Resource):
             initial_state = request_body['initial-state']
             list_moves = request_body['list-moves']
         except KeyError:
-            return malformed()
+            return create_error_response(400, 'Wrong request format',
+                                         'Be sure you include exercise headline,'
+                                         'author, author-mail, initial-state and list-moves.')
+
+        # about is not required
         about = request_body['about'] if 'about' in request_body else None
+
+        # TODO currently exercise name is unique
+
+        # check if nickname exists
         if not _check_existing_nickname(author):
             return create_error_response(404, 'User not found', 'The provided nickname does not exist in the database.')
+
+        # validate author
         if not _check_author_email(author, author_email):
             return create_error_response(401, 'Wrong authentication',
                                          'The provided email address does not match the one in the database.')
+
+        # check if sent data is valid chess-wise
         if not _check_chess_data(initial_state, list_moves):
             return create_error_response(400, 'Wrong request format', 'provided chess data is not valid')
+
+        # everything is ok - add the exercise to the database
         new_id = g.con.create_exercise(headline, about, author, initial_state, list_moves)
         if not new_id:
             return create_error_response(500, 'Problem with the database', 'Cannot access database')
