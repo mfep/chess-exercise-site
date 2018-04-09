@@ -237,7 +237,7 @@ class Connection(object):
         """
         return {'exercise_id': row['exercise_id'], 'title': row['title'], 'author': nickname}
 
-    def _fetch_nickname(self, user_id):
+    def fetch_nickname(self, user_id):
         """
         Queries the database to find the nickname belonging to a particular user_id.
         :param user_id: The user id.
@@ -305,7 +305,7 @@ class Connection(object):
             return None
         exercises = []
         for row in rows:
-            exercises.append(self._create_exercise_list_object(row, self._fetch_nickname(row['user_id'])))
+            exercises.append(self._create_exercise_list_object(row, self.fetch_nickname(row['user_id'])))
         return exercises
 
     def delete_exercise(self, exercise_id):

@@ -43,7 +43,7 @@ class ChessApiObject(dict):
         if method:
             self['@controls'][name]['method'] = method
 
-    def add_exercise_control(self):
+    def add_add_exercise_control(self):
         self['@controls']['chessapi:add-exercise'] = {
             'title': 'Submit a new exercise',
             'href': api.url_for(Exercises),
@@ -84,6 +84,63 @@ class ChessApiObject(dict):
                     }
                 },
                 'required': ['headline', 'intial-state', 'list-moves', 'author', 'author-email']
+            }
+        }
+
+    def add_edit_exercise_control(self, exerciseid):
+        self['@controls']['edit'] = {
+            'title': 'Edit this exercise',
+            'href': api.url_for(Exercise, exerciseid=exerciseid),
+            'encoding': 'json',
+            'method': 'PUT',
+            'schema': {
+                'type': 'object',
+                'properties': {
+                    'headline': {
+                        'title': 'Headline',
+                        'description': 'Exercise title',
+                        'type': 'string'
+                    },
+                    'about': {
+                        'title': 'About',
+                        'description': 'Exercise description',
+                        'type': 'string'
+                    },
+                    'initial-state': {
+                        'title': 'Initial state',
+                        'description': 'FEN code of the initial board state',
+                        'type': 'string'
+                    },
+                    'list-moves': {
+                        'title': 'List of moves',
+                        'description': 'PGN code movelist of the exercise solution',
+                        'type': 'string'
+                    },
+                    'author-email': {
+                        'title': 'Author Email',
+                        'description': 'The author\'s email address. Used for authentication.',
+                        'type': 'string'
+                    }
+                },
+                'required': ['headline', 'intial-state', 'list-moves', 'author-email']
+            }
+        }
+
+    def add_solver_control(self, exerciseid):
+        self['@controls']['chessapi:exercise-solver'] = {
+            'title': 'Exercise Solver',
+            'href': api.url_for(Solver, exerciseid=exerciseid)[0:-1]+'{?solution}',
+            'method': 'GET',
+            'isHrefTemplate': True,
+            'schema': {
+                'required': ['solution'],
+                'type': 'object',
+                'properties': {
+                    'solution': {
+                        'type': 'string',
+                        'description': 'PGN code of the proposed solution of the exercise.'
+                    }
+                }
             }
         }
 
@@ -208,7 +265,7 @@ class Exercises(Resource):
     def get(self):
         # create envelope and add controls to it
         envelope = ChessApiObject(api.url_for(Exercises), EXERCISE_PROFILE)
-        envelope.add_exercise_control()
+        envelope.add_add_exercise_control()
         envelope.add_users_all_control()
 
         # get the list of exercises from the database and add them to the envelope - with a minimal format
@@ -271,7 +328,31 @@ class Exercises(Resource):
 
 class Exercise(Resource):
     def get(self, exerciseid):
-        pass
+        # fetch exercise from database
+        exercise_db = g.con.get_exercise(exerciseid)
+        if not exercise_db:
+            return create_error_response(404, 'Exercise does not exist', 'There is no exercise with id ' + exerciseid)
+
+        # fetch author nickname
+        # TODO what about not exposing any user_id from the database???
+        author = g.con.fetch_nickname(exercise_db['user_id'])
+
+        # create envelope and add controls
+        url = api.url_for(Exercise, exerciseid=exerciseid)
+        envelope = ChessApiObject(url, EXERCISE_PROFILE)
+        envelope.add_control('author', api.url_for(User, nickname=author))
+        envelope.add_control('collection', api.url_for(Exercises))
+        envelope.add_edit_exercise_control(exerciseid)
+        envelope.add_control('chessapi:delete', url, 'DELETE')
+        envelope.add_solver_control(exerciseid)
+        envelope['initial-state'] = exercise_db['initial_state']
+        envelope['list-moves'] = exercise_db['list_moves']
+        envelope['author'] = author
+        envelope['dateCreated'] = exercise_db['sub_date']
+        envelope['headline'] = exercise_db['title']
+        envelope['about'] = exercise_db['description']
+
+        return Response(json.dumps(envelope), 200, mimetype=MASON+';'+EXERCISE_PROFILE)
 
     def put(self, exerciseid):
         pass
