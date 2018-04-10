@@ -193,6 +193,18 @@ def _compare_exercise_solution(solution, proposed):
     return SOLVER_WRONG
 
 
+def _create_exercise_items_list(exercises_db):
+        items = []
+        if not exercises_db:
+            return items
+        for exercise_db in exercises_db:
+            ex = ChessApiObject(api.url_for(Exercise, exerciseid=exercise_db['exercise_id']), EXERCISE_PROFILE, False)
+            ex['headline'] = exercise_db['title']
+            ex['author'] = exercise_db['author']
+            items.append(ex)
+        return items
+
+
 def create_error_response(status_code, title, message=None):
     """
     Creates a: py: class:`flask.Response` instance when sending back an
@@ -309,9 +321,21 @@ class User(Resource):
 
 
 class Submissions(Resource):
-    # TODO lorinc
     def get(self, nickname):
-        pass
+        # check if user exists
+        if not g.con.get_user(nickname):
+            return MISSING_USER_RESP
+
+        # create and add controls to the envelope
+        envelope = ChessApiObject(api.url_for(Submissions, nickname=nickname), EXERCISE_PROFILE)
+        envelope.add_control('up', api.url_for(User, nickname=nickname))
+
+        # get list of exercises submitted by the user with `nickname`
+        exercises_db = g.con.get_exercises(nickname)
+        envelope['items'] = _create_exercise_items_list(exercises_db)
+
+        # response
+        return Response(json.dumps(envelope), 200, mimetype=MASON+';'+EXERCISE_PROFILE)
 
 
 class Exercises(Resource):
@@ -323,12 +347,7 @@ class Exercises(Resource):
 
         # get the list of exercises from the database and add them to the envelope - with a minimal format
         exercises_from_db = g.con.get_exercises()
-        items = []
-        for exercise_db in exercises_from_db:
-            ex = ChessApiObject(api.url_for(Exercise, exerciseid=exercise_db['exercise_id']), EXERCISE_PROFILE, False)
-            ex['headline'] = exercise_db['title']
-            ex['author'] = exercise_db['author']
-            items.append(ex)
+        items = _create_exercise_items_list(exercises_from_db)
 
         envelope['items'] = items
         return Response(json.dumps(envelope), 200, mimetype=MASON+';'+EXERCISE_PROFILE)

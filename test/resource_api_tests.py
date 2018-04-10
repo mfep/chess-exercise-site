@@ -216,23 +216,83 @@ MODIFY_EXERCISE_VALID_DATA = {
 }
 EXERCISE_1_AUTHOR_MAIL = 'mystery@mymail.com'
 GOT_SOLVER = {
-  '@namespaces': {
-    'chessapi': {
-      'name': '/api/link-relations/'
-    }
-  },
-  '@controls': {
-    'up': {
-      'href': '/api/exercises/1/'
+    '@namespaces': {
+        'chessapi': {
+            'name': '/api/link-relations/'
+        }
     },
-    'self': {
-      'href': '/api/exercises/1/solver/'
+    '@controls': {
+        'up': {
+            'href': '/api/exercises/1/'
+        },
+        'self': {
+            'href': '/api/exercises/1/solver/'
+        },
+        'profile': {
+            'href': '/profiles/exercise-profile/'
+        }
     },
-    'profile': {
-      'href': '/profiles/exercise-profile/'
+    'value': 'SOLUTION'
+}
+GOT_SUBMISSIONS_NONEMPTY = {
+    '@controls': {
+        'profile': {
+            'href': '/profiles/exercise-profile/'
+        },
+        'up': {
+            'href': '/api/users/Mystery/'
+        },
+        'self': {
+            'href': '/api/users/Mystery/submissions/'
+        }
+    },
+    'items': [{
+        '@controls': {
+            'profile': {
+                'href': '/profiles/exercise-profile/'
+            },
+            'self': {
+                'href': '/api/exercises/1/'
+            }
+        },
+        'headline': 'Fool Mate',
+        'author': 'Mystery'
+    }, {
+        '@controls': {
+            'profile': {
+                'href': '/profiles/exercise-profile/'
+            },
+            'self': {
+                'href': '/api/exercises/2/'
+            }
+        },
+        'headline': 'Fool Mate II',
+        'author': 'Mystery'
+    }],
+    '@namespaces': {
+        'chessapi': {
+            'name': '/api/link-relations/'
+        }
     }
-  },
-  'value': 'SOLUTION'
+}
+GOT_SUBMISSIONS_EMPTY = {
+    '@controls': {
+        'up': {
+            'href': '/api/users/AxelW/'
+        },
+        'self': {
+            'href': '/api/users/AxelW/submissions/'
+        },
+        'profile': {
+            'href': '/profiles/exercise-profile/'
+        }
+    },
+    'items': [],
+    '@namespaces': {
+        'chessapi': {
+            'name': '/api/link-relations/'
+        }
+    }
 }
 
 resources.app.config['Testing'] = True
@@ -557,6 +617,30 @@ class ExercisesTestCase(ResourcesApiTestCase):
                                '?solution='+urllib.parse.quote_plus("dksajakldjs"))
         self._assertErrorMessage(resp, 400, 'Bad query')
 
+
+class UsersTestCase(ResourcesApiTestCase):
+    def test_get_submissions(self):
+        """Checks if user submissions can be retrieved"""
+        print('(' + self.test_get_submissions.__name__ + ')', self.test_get_submissions.__doc__)
+        nickname = 'Mystery'
+        resp = self.client.get(resources.api.url_for(resources.Submissions, nickname=nickname))
+        self.assertEqual(200, resp.status_code)
+        self.assertDictEqual(GOT_SUBMISSIONS_NONEMPTY, json.loads(resp.data.decode('utf-8')))
+
+    def test_get_submissions_empty(self):
+        """Checks if submissions gives result even when there is no exercises submitted by the user"""
+        print('(' + self.test_get_submissions_empty.__name__ + ')', self.test_get_submissions_empty.__doc__)
+        nickname = 'AxelW'
+        resp = self.client.get(resources.api.url_for(resources.Submissions, nickname=nickname))
+        self.assertEqual(200, resp.status_code)
+        self.assertDictEqual(GOT_SUBMISSIONS_EMPTY, json.loads(resp.data.decode('utf-8')))
+
+    def test_submissions_non_existing(self):
+        """Checks error code when requesting submissions of non-existing user"""
+        print('(' + self.test_submissions_non_existing.__name__ + ')', self.test_submissions_non_existing.__doc__)
+        nickname = 'Hacker'
+        resp = self.client.get(resources.api.url_for(resources.Submissions, nickname=nickname))
+        self._assertErrorMessage(resp, 404, 'User not found')
 
 if __name__ == '__main__':
     print('Start running tests')
