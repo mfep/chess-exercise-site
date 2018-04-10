@@ -15,18 +15,18 @@ INITIAL_EXERCISE_SIZE = 3
 EXERCISE1 = {
     'exercise_id': 1,
     'author': 'Mystery',
-    'title': 'Easy one',
-    'description': 'No need to explain this.',
+    'title': 'Fool Mate',
+    'description': 'The quickest checkmate available.',
     'sub_date': 1519061565,
-    'initial_state': 'VALIDFENFEN',
-    'list_moves': 'VALIDPGNPGN'
+    'initial_state': 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
+    'list_moves': 'f3,e5,g4,Qh4#'
 }
 EXERCISE2_MODIFIED = {
     'exercise_id': 2,
     'author': 'Mystery',
     'title': 'Modified Title',
     'description': 'Description',
-    'sub_date': 1443827483,
+    'sub_date': 1519071565,
     'initial_state': 'asd',
     'list_moves': 'dsa'
 
