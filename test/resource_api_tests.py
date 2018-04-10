@@ -121,6 +121,97 @@ ADD_EXERCISE_VALID_DATA = {
   'list-moves': 'f3,e5,g4,Qh4#'
 }
 ADDED_EXERCISE_LOCATION = 'http://localhost:5000/api/exercises/4/'
+GOT_EXERCISE = {
+    '@namespaces': {
+        'chessapi': {
+            'name': '/api/link-relations/'
+        }
+    },
+    'initial-state': 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
+    'dateCreated': 1519061565,
+    'about': 'The quickest checkmate available.',
+    'author': 'Mystery',
+    'list-moves': 'f3,e5,g4,Qh4#',
+    '@controls': {
+        'collection': {
+            'href': '/api/exercises/'
+        },
+        'chessapi:delete': {
+            'method': 'DELETE',
+            'href': '/api/exercises/1/'
+        },
+        'author': {
+            'href': '/api/users/Mystery/'
+        },
+        'self': {
+            'href': '/api/exercises/1/'
+        },
+        'edit': {
+            'schema': {
+                'required': ['headline', 'intial-state', 'list-moves', 'author-email'],
+                'type': 'object',
+                'properties': {
+                    'initial-state': {
+                        'type': 'string',
+                        'description': 'FEN code of the initial board state',
+                        'title': 'Initial state'
+                    },
+                    'author-email': {
+                        'type': 'string',
+                        'description': 'The author\'s email address. Used for authentication.',
+                        'title': 'Author Email'
+                    },
+                    'headline': {
+                        'type': 'string',
+                        'description': 'Exercise title',
+                        'title': 'Headline'
+                    },
+                    'about': {
+                        'type': 'string',
+                        'description': 'Exercise description',
+                        'title': 'About'
+                    },
+                    'list-moves': {
+                        'type': 'string',
+                        'description': 'PGN code movelist of the exercise solution',
+                        'title': 'List of moves'
+                    }
+                }
+            },
+            'encoding': 'json',
+            'method': 'PUT',
+            'href': '/api/exercises/1/',
+            'title': 'Edit this exercise'
+        },
+        'profile': {
+            'href': '/profiles/exercise-profile/'
+        },
+        'chessapi:exercise-solver': {
+            'schema': {
+                'type': 'object',
+                'required': ['solution'],
+                'properties': {
+                    'solution': {
+                        'type': 'string',
+                        'description': 'PGN code of the proposed solution of the exercise.'
+                    }
+                }
+            },
+            'isHrefTemplate': True,
+            'method': 'GET',
+            'href': '/api/exercises/1/solver{?solution}',
+            'title': 'Exercise Solver'
+        }
+    },
+    'headline': 'Fool Mate'
+}
+MODIFY_EXERCISE_VALID_DATA = {
+    'headline': 'from chess.com',
+    'about': 'No need for description',
+    'author-email': 'mystery@mymail.com',
+    'initial-state': 'r1bq1bkr/ppp3pp/2n5/3Qp3/2B5/8/PPPP1PPP/RNBQK1NR b KQkq - 0 1',
+    'list-moves': 'Qxd5,Bxd5+,Be6,Bxe6#'
+}
 
 resources.app.config['Testing'] = True
 resources.app.config['SERVER_NAME'] = 'localhost:5000'
@@ -151,9 +242,9 @@ class ResourcesApiTestCase(unittest.TestCase):
         self.app_context.pop()
 
     def _assertErrorMessage(self, resp, code, message):
-        self.assertEqual(resp.status_code, code)
+        self.assertEqual(code, resp.status_code)
         data = json.loads(resp.data.decode('utf-8'))
-        self.assertEqual(data['@error']['@message'], message)
+        self.assertEqual(message, data['@error']['@message'])
 
 
 class ExercisesTestCase(ResourcesApiTestCase):
@@ -205,8 +296,8 @@ class ExercisesTestCase(ResourcesApiTestCase):
         """Checks if exercises GET request works correctly"""
         print('(' + self.test_get_exercises.__name__ + ')', self.test_get_exercises.__doc__)
         resp = self.client.get(flask.url_for('exercises'))
-        self.assertEqual(resp.status_code, 200)
-        self.assertEqual(resp.headers.get(CONTENT_TYPE), resources.MASON + ';' + resources.EXERCISE_PROFILE)
+        self.assertEqual(200, resp.status_code)
+        self.assertEqual(resources.MASON + ';' + resources.EXERCISE_PROFILE, resp.headers.get(CONTENT_TYPE))
         data = json.loads(resp.data.decode('utf-8'))
         self.assertDictEqual(data, GOT_EXERCISES)
 
@@ -216,8 +307,8 @@ class ExercisesTestCase(ResourcesApiTestCase):
         resp = self.client.post(resources.api.url_for(resources.Exercises),
                                 headers={CONTENT_TYPE: resources.JSON},
                                 data=json.dumps(ADD_EXERCISE_VALID_DATA))
-        self.assertEqual(resp.status_code, 201)
-        self.assertEqual(resp.headers.get('Location'), ADDED_EXERCISE_LOCATION)
+        self.assertEqual(201, resp.status_code)
+        self.assertEqual(ADDED_EXERCISE_LOCATION, resp.headers.get('Location'))
 
     def test_add_exercise_not_json(self):
         """Check if error code is correct when Content-Type is not set"""
@@ -234,7 +325,7 @@ class ExercisesTestCase(ResourcesApiTestCase):
         resp = self.client.post(resources.api.url_for(resources.Exercises),
                                 headers={CONTENT_TYPE: resources.JSON},
                                 data=json.dumps(request_data))
-        self._assertErrorMessage(resp, 400, 'Wrong request format')
+        self._assertErrorMessage(resp, 400, 'Missing fields')
 
     def test_add_exercise_existing_title(self):
         """Check if error code is correct when an existing exercise name is provided"""
@@ -276,7 +367,98 @@ class ExercisesTestCase(ResourcesApiTestCase):
         resp = self.client.post(resources.api.url_for(resources.Exercises),
                                 headers={CONTENT_TYPE: resources.JSON},
                                 data=json.dumps(request_data))
+        self._assertErrorMessage(resp, 400, 'Invalid chess data')
+
+    def test_get_exercise(self):
+        """Check if exercise data can be retrieved"""
+        print('(' + self.test_get_exercise.__name__ + ')', self.test_get_exercise.__doc__)
+        resp = self.client.get(resources.api.url_for(resources.Exercise, exerciseid=1))
+        self.assertEqual(200, resp.status_code)
+        self.assertEqual(resources.MASON + ';' + resources.EXERCISE_PROFILE, resp.headers.get(CONTENT_TYPE))
+        data = json.loads(resp.data.decode('utf-8'))
+        self.assertDictEqual(GOT_EXERCISE, data)
+
+    def test_get_exercise_non_existing(self):
+        """Check error code when 404ing exercise"""
+        print('(' + self.test_get_exercise_non_existing.__name__ + ')', self.test_get_exercise_non_existing.__doc__)
+        resp = self.client.get(resources.api.url_for(resources.Exercise, exerciseid=100))
+        self._assertErrorMessage(resp, 404, 'Exercise does not exist')
+
+    def test_modify_exercise_valid(self):
+        """Check if exercise can be modified via PUT request."""
+        print('(' + self.test_modify_exercise_valid.__name__ + ')', self.test_modify_exercise_valid.__doc__)
+        exercise_id = 1
+        resp = self.client.put(resources.api.url_for(resources.Exercise, exerciseid=exercise_id),
+                               headers={CONTENT_TYPE: resources.JSON},
+                               data=json.dumps(MODIFY_EXERCISE_VALID_DATA))
+        self.assertEqual(204, resp.status_code)
+        resp = self.client.get(resources.api.url_for(resources.Exercise, exerciseid=exercise_id))
+        self.assertEqual(200, resp.status_code)
+        data = json.loads(resp.data.decode('utf-8'))
+        self.assertEqual(MODIFY_EXERCISE_VALID_DATA['headline'], data['headline'])
+        self.assertEqual(MODIFY_EXERCISE_VALID_DATA['about'], data['about'])
+        self.assertEqual(MODIFY_EXERCISE_VALID_DATA['list-moves'], data['list-moves'])
+        self.assertEqual(MODIFY_EXERCISE_VALID_DATA['initial-state'], data['initial-state'])
+
+    def test_modify_exercise_non_existing(self):
+        print('(' + self.test_modify_exercise_non_existing.__name__ + ')',
+              self.test_modify_exercise_non_existing.__doc__)
+        exercise_id = 100
+        resp = self.client.put(resources.api.url_for(resources.Exercise, exerciseid=exercise_id),
+                               headers={CONTENT_TYPE: resources.JSON},
+                               data=json.dumps(MODIFY_EXERCISE_VALID_DATA))
+        self._assertErrorMessage(resp, 404, 'Exercise does not exist')
+
+    def test_modify_exercise_not_json(self):
+        print('(' + self.test_modify_exercise_not_json.__name__ + ')', self.test_modify_exercise_not_json.__doc__)
+        exercise_id = 1
+        resp = self.client.put(resources.api.url_for(resources.Exercise, exerciseid=exercise_id),
+                               data=json.dumps(MODIFY_EXERCISE_VALID_DATA))
         self._assertErrorMessage(resp, 400, 'Wrong request format')
+
+    def test_modify_exercise_missing_fields(self):
+        print('(' + self.test_modify_exercise_missing_fields.__name__ + ')',
+              self.test_modify_exercise_missing_fields.__doc__)
+        request_data = MODIFY_EXERCISE_VALID_DATA.copy()
+        request_data.pop('headline')
+        exercise_id = 1
+        resp = self.client.put(resources.api.url_for(resources.Exercise, exerciseid=exercise_id),
+                               headers={CONTENT_TYPE: resources.JSON},
+                               data=json.dumps(request_data))
+        self._assertErrorMessage(resp, 400, 'Missing fields')
+
+    def test_modify_exercise_existing_title(self):
+        print('(' + self.test_modify_exercise_existing_title.__name__ + ')',
+              self.test_modify_exercise_existing_title.__doc__)
+        request_data = MODIFY_EXERCISE_VALID_DATA.copy()
+        request_data['headline'] = 'Simple bishop'
+        exercise_id = 1
+        resp = self.client.put(resources.api.url_for(resources.Exercise, exerciseid=exercise_id),
+                               headers={CONTENT_TYPE: resources.JSON},
+                               data=json.dumps(request_data))
+        self._assertErrorMessage(resp, 400, 'Existing exercise headline')
+
+    def test_modify_exercise_invalid_email(self):
+        print('(' + self.test_modify_exercise_invalid_email.__name__ + ')',
+              self.test_modify_exercise_invalid_email.__doc__)
+        request_data = MODIFY_EXERCISE_VALID_DATA.copy()
+        request_data['author-email'] = 'hacker@mymail.com'
+        exercise_id = 1
+        resp = self.client.put(resources.api.url_for(resources.Exercise, exerciseid=exercise_id),
+                               headers={CONTENT_TYPE: resources.JSON},
+                               data=json.dumps(request_data))
+        self._assertErrorMessage(resp, 401, 'Wrong authentication')
+
+    def test_modify_exercise_invalid_chess_data(self):
+        print('(' + self.test_modify_exercise_invalid_chess_data.__name__ + ')',
+              self.test_modify_exercise_invalid_chess_data.__doc__)
+        request_data = MODIFY_EXERCISE_VALID_DATA.copy()
+        request_data['list-moves'] = NON_CHECKMATE_MOVES
+        exercise_id = 1
+        resp = self.client.put(resources.api.url_for(resources.Exercise, exerciseid=exercise_id),
+                               headers={CONTENT_TYPE: resources.JSON},
+                               data=json.dumps(request_data))
+        self._assertErrorMessage(resp, 400, 'Invalid chess data')
 
 
 if __name__ == '__main__':

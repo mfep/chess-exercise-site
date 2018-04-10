@@ -214,8 +214,15 @@ MISSING_USER_RESP = create_error_response(404, 'User not found',
                                           'The provided nickname does not exist in the database.')
 WRONG_AUTH_RESP = create_error_response(401, 'Wrong authentication',
                                         'The provided email address does not match the one in the database.')
-INVALID_CHESS_DATA_RESP = create_error_response(400, 'Wrong request format', 'Provided chess data is not valid')
+INVALID_CHESS_DATA_RESP = create_error_response(400,
+                                                'Invalid chess data', 'Provided initial board state should be '
+                                                'valid FEN code. List of moves should be comma separated SAN codes. '
+                                                'The exercise should end with checkmate.')
 DB_PROBLEM_RESP = create_error_response(500, 'Problem with the database', 'Cannot access database')
+
+
+def missing_exercise_response(exerciseid):
+    return create_error_response(404, 'Exercise does not exist', 'There is no exercise with id ' + exerciseid)
 
 
 @app.errorhandler(400)
@@ -313,10 +320,8 @@ class Exercises(Resource):
         return Response(json.dumps(envelope), 200, mimetype=MASON+';'+EXERCISE_PROFILE)
 
     def post(self):
-        # TODO lorinc : update error messages in apiary
-
         # Check if json
-        if JSON != request.headers.get('Content-Type',''):
+        if JSON != request.headers.get('Content-Type', ''):
             return BAD_JSON_RESP
         request_body = request.get_json(force=True)
 
@@ -328,12 +333,12 @@ class Exercises(Resource):
             initial_state = request_body['initial-state']
             list_moves = request_body['list-moves']
         except KeyError:
-            return create_error_response(400, 'Wrong request format',
+            return create_error_response(400, 'Missing fields',
                                          'Be sure you include exercise headline,'
                                          'author, author-mail, initial-state and list-moves.')
 
         # about is not required
-        about = request_body['about'] if 'about' in request_body else None
+        about = request_body.get('about')
 
         # check if exercise title exists already
         if not _check_free_exercise_title(headline):
@@ -364,7 +369,7 @@ class Exercise(Resource):
         # fetch exercise from database
         exercise_db = g.con.get_exercise(exerciseid)
         if not exercise_db:
-            return create_error_response(404, 'Exercise does not exist', 'There is no exercise with id ' + exerciseid)
+            return missing_exercise_response(exerciseid)
 
         # create envelope and add controls
         url = api.url_for(Exercise, exerciseid=exerciseid)
@@ -384,8 +389,44 @@ class Exercise(Resource):
         return Response(json.dumps(envelope), 200, mimetype=MASON+';'+EXERCISE_PROFILE)
 
     def put(self, exerciseid):
-        # TODO lorinc
-        pass
+        # check if the exercise exists
+        if not g.con.get_exercise(exerciseid):
+            return missing_exercise_response(exerciseid)
+
+        # check if the request data is valid JSON
+        if JSON != request.headers.get('Content-Type'):
+            return BAD_JSON_RESP
+        request_body = request.get_json(force=True)
+
+        # extract fields
+        try:
+            headline = request_body['headline']
+            initial_state = request_body['initial-state']
+            list_moves = request_body['list-moves']
+            author_email = request_body['author-email']
+        except KeyError:
+            return create_error_response(400, 'Missing fields',
+                                         'Be sure you include exercise headline,'
+                                         'author-mail, initial-state and list-moves.')
+        # about is not required
+        about = request_body.get('about')
+        author = g.con.get_exercise(exerciseid)['author']
+
+        # check if exercise title exists already
+        if not _check_free_exercise_title(headline):
+            return EXISTING_TITLE_RESP
+
+        # validate author
+        if not _check_author_email(author, author_email):
+            return WRONG_AUTH_RESP
+
+        # check if sent data is valid chess-wise
+        if not _check_chess_data(initial_state, list_moves):
+            return INVALID_CHESS_DATA_RESP
+
+        if exerciseid != g.con.modify_exercise(exerciseid, headline, about, initial_state, list_moves):
+            return DB_PROBLEM_RESP
+        return Response(status=204)
 
     def delete(self, exerciseid):
         # TODO lorinc
@@ -393,6 +434,7 @@ class Exercise(Resource):
 
 
 class Solver(Resource):
+    # TODO lorinc
     def get(self, exerciseid, proposed_solution):
         pass
 
