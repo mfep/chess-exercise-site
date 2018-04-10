@@ -174,7 +174,7 @@ def _check_chess_data(initial_state, list_moves):
 
 def _check_free_exercise_title(title):
     exercises_db = g.con.get_exercises()
-    return not any(map(lambda ex: ex['title'] == title,exercises_db))
+    return not any(map(lambda ex: ex['title'] == title, exercises_db))
 
 
 def create_error_response(status_code, title, message=None):
@@ -200,6 +200,17 @@ def create_error_response(status_code, title, message=None):
         }
     }
     return Response(json.dumps(envelope), status_code, mimetype=MASON+';'+ERROR_PROFILE)
+
+
+BAD_JSON_RESP = create_error_response(400, 'Wrong request format', JSON+' is required')
+EXISTING_TITLE_RESP = create_error_response(400, 'Existing exercise headline',
+                                            'The provided headline already exists in the database')
+MISSING_USER_RESP = create_error_response(404, 'User not found',
+                                          'The provided nickname does not exist in the database.')
+WRONG_AUTH_RESP = create_error_response(401, 'Wrong authentication',
+                                        'The provided email address does not match the one in the database.')
+INVALID_CHESS_DATA_RESP = create_error_response(400, 'Wrong request format', 'Provided chess data is not valid')
+DB_PROBLEM_RESP = create_error_response(500, 'Problem with the database', 'Cannot access database')
 
 
 @app.errorhandler(400)
@@ -290,7 +301,7 @@ class Exercises(Resource):
 
         # Check if json
         if JSON != request.headers.get('Content-Type',''):
-            return create_error_response(400, 'Wrong request format', JSON+' is required')
+            return BAD_JSON_RESP
         request_body = request.get_json(force=True)
 
         # check if has every required field
@@ -310,26 +321,24 @@ class Exercises(Resource):
 
         # check if exercise title exists already
         if not _check_free_exercise_title(headline):
-            return create_error_response(400, 'Existing exercise headline',
-                                         'The provided headline already exists in the database')
+            return EXISTING_TITLE_RESP
 
         # check if nickname exists
         if not _check_existing_nickname(author):
-            return create_error_response(404, 'User not found', 'The provided nickname does not exist in the database.')
+            return MISSING_USER_RESP
 
         # validate author
         if not _check_author_email(author, author_email):
-            return create_error_response(401, 'Wrong authentication',
-                                         'The provided email address does not match the one in the database.')
+            return WRONG_AUTH_RESP
 
         # check if sent data is valid chess-wise
         if not _check_chess_data(initial_state, list_moves):
-            return create_error_response(400, 'Wrong request format', 'Provided chess data is not valid')
+            return INVALID_CHESS_DATA_RESP
 
         # everything is ok - add the exercise to the database
         new_id = g.con.create_exercise(headline, about, author, initial_state, list_moves)
         if not new_id:
-            return create_error_response(500, 'Problem with the database', 'Cannot access database')
+            return DB_PROBLEM_RESP
         url = api.url_for(Exercise, exerciseid=new_id)
         return Response(status=201, headers={'Location': url})
 
