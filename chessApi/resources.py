@@ -429,8 +429,20 @@ class Exercise(Resource):
         return Response(status=204)
 
     def delete(self, exerciseid):
-        # TODO lorinc
-        pass
+        # check if exercise exists
+        exercise_db = g.con.get_exercise(exerciseid)
+        if not exercise_db:
+            return missing_exercise_response(exerciseid)
+
+        # check that the provided email matches the one in the database
+        query_email = request.args.get('author_email')
+        if not _check_author_email(exercise_db['author'], query_email):
+            return WRONG_AUTH_RESP
+
+        # delete exercise from db
+        if not g.con.delete_exercise(exerciseid):
+            return DB_PROBLEM_RESP
+        return Response(status=204)
 
 
 class Solver(Resource):

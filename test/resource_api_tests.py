@@ -212,6 +212,7 @@ MODIFY_EXERCISE_VALID_DATA = {
     'initial-state': 'r1bq1bkr/ppp3pp/2n5/3Qp3/2B5/8/PPPP1PPP/RNBQK1NR b KQkq - 0 1',
     'list-moves': 'Qxd5,Bxd5+,Be6,Bxe6#'
 }
+EXERCISE_1_AUTHOR_MAIL = 'mystery@mymail.com'
 
 resources.app.config['Testing'] = True
 resources.app.config['SERVER_NAME'] = 'localhost:5000'
@@ -459,6 +460,23 @@ class ExercisesTestCase(ResourcesApiTestCase):
                                headers={CONTENT_TYPE: resources.JSON},
                                data=json.dumps(request_data))
         self._assertErrorMessage(resp, 400, 'Invalid chess data')
+
+    def test_delete_exercise(self):
+        print('(' + self.test_delete_exercise.__name__ + ')', self.test_delete_exercise.__doc__)
+        exercise_id = 1
+        resp = self.client.delete(resources.api.url_for(resources.Exercise, exerciseid=exercise_id)
+                                  +'?author_email=mystery%40mymail.com')
+        self.assertEqual(204, resp.status_code)
+        resp = self.client.get(resources.api.url_for(resources.Exercise, exerciseid=exercise_id))
+        self._assertErrorMessage(resp, 404, 'Exercise does not exist')
+
+    def test_delete_exercise_non_existing(self):
+        print('(' + self.test_delete_exercise_non_existing.__name__ + ')',
+              self.test_delete_exercise_non_existing.__doc__)
+        exercise_id = 100
+        resp = self.client.delete(resources.api.url_for(resources.Exercise, exerciseid=exercise_id)
+                                  +'?author_email=mystery%40mymail.com')
+        self._assertErrorMessage(resp, 404, 'Exercise does not exist')
 
 
 if __name__ == '__main__':
