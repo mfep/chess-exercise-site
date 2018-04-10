@@ -157,8 +157,13 @@ def _check_author_email(nickname, submitted_mail):
 
 
 def _check_chess_data(initial_state, list_moves):
-    # TODO update documentation. we're not using PGN anymore, but a simpler notation
+    # TODO weiping : update documentation. we're not using PGN anymore, but a simpler notation
     # which consists of comma-separated SAN entries
+    # to be updated:
+    #   - confluence
+    #   - apairy
+    #   - response dictioanries
+    #   - testing dictionaries
     try:
         # check if initial state is valid
         board = chess.Board(initial_state)
@@ -254,6 +259,11 @@ def close_connection(exc):
 
 
 class Users(Resource):
+    # TODO weiping
+    # - code
+    # - docstrings
+    # - tests
+    # - check if the error responses are present in apiary
     def get(self):
         pass
 
@@ -262,6 +272,11 @@ class Users(Resource):
 
 
 class User(Resource):
+    # TODO antonio
+    # - code
+    # - docstrings
+    # - tests
+    # - check if the error responses are present in apiary
     def get(self, nickname):
         pass
 
@@ -273,6 +288,7 @@ class User(Resource):
 
 
 class Submissions(Resource):
+    # TODO lorinc
     def get(self, nickname):
         pass
 
@@ -297,7 +313,7 @@ class Exercises(Resource):
         return Response(json.dumps(envelope), 200, mimetype=MASON+';'+EXERCISE_PROFILE)
 
     def post(self):
-        # TODO update error messages in apiary
+        # TODO lorinc : update error messages in apiary
 
         # Check if json
         if JSON != request.headers.get('Content-Type',''):
@@ -368,9 +384,11 @@ class Exercise(Resource):
         return Response(json.dumps(envelope), 200, mimetype=MASON+';'+EXERCISE_PROFILE)
 
     def put(self, exerciseid):
+        # TODO lorinc
         pass
 
     def delete(self, exerciseid):
+        # TODO lorinc
         pass
 
 
@@ -378,6 +396,8 @@ class Solver(Resource):
     def get(self, exerciseid, proposed_solution):
         pass
 
+
+# TODO lorinc - redirect profiles
 
 api.add_resource(Users,       "/api/users/", endpoint="users")
 api.add_resource(User,        "/api/users/<nickname>/", endpoint="user")
