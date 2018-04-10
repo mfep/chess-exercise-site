@@ -15,6 +15,9 @@ JSON = 'application/json'
 EXERCISE_PROFILE = '/profiles/exercise-profile/'
 ERROR_PROFILE = '/profiles/error-profile'
 LINK_RELATIONS = '/api/link-relations/'
+SOLVER_SOLUTION = 'SOLUTION'
+SOLVER_PARTIAL = 'PARTIAL'
+SOLVER_WRONG = 'WRONG'
 
 app = Flask(__name__)
 app.debug = True
@@ -156,7 +159,7 @@ def _check_author_email(nickname, submitted_mail):
     return user['email'] == submitted_mail
 
 
-def _check_chess_data(initial_state, list_moves):
+def _check_chess_data(initial_state, list_moves, checkmate_needed=True):
     # TODO weiping : update documentation. we're not using PGN anymore, but a simpler notation
     # which consists of comma-separated SAN entries
     # to be updated:
@@ -174,12 +177,20 @@ def _check_chess_data(initial_state, list_moves):
     except ValueError:
         return False
     # valid exercise ends with checkmate
-    return board.is_checkmate()
+    return not checkmate_needed or board.is_checkmate()
 
 
 def _check_free_exercise_title(title):
     exercises_db = g.con.get_exercises()
     return not any(map(lambda ex: ex['title'] == title, exercises_db))
+
+
+def _compare_exercise_solution(solution, proposed):
+    if solution == proposed:
+        return SOLVER_SOLUTION
+    if solution.find(proposed) == 0:
+        return SOLVER_PARTIAL
+    return SOLVER_WRONG
 
 
 def create_error_response(status_code, title, message=None):
@@ -218,6 +229,9 @@ INVALID_CHESS_DATA_RESP = create_error_response(400,
                                                 'Invalid chess data', 'Provided initial board state should be '
                                                 'valid FEN code. List of moves should be comma separated SAN codes. '
                                                 'The exercise should end with checkmate.')
+BAD_SOLUTION_QUERY = create_error_response(400, 'Bad query',
+                                           'Provide a valid comma separated SAN movelist as a query. '
+                                           'Consider the initial state of the board.')
 DB_PROBLEM_RESP = create_error_response(500, 'Problem with the database', 'Cannot access database')
 
 
@@ -446,9 +460,29 @@ class Exercise(Resource):
 
 
 class Solver(Resource):
-    # TODO lorinc
-    def get(self, exerciseid, proposed_solution):
-        pass
+    def get(self, exerciseid):
+        # check if exercise exists
+        exercise_db = g.con.get_exercise(exerciseid)
+        if not exercise_db:
+            return missing_exercise_response(exerciseid)
+
+        # fetch the query list-moves
+        proposed_solution = request.args.get('solution')
+        if not proposed_solution:
+            return BAD_SOLUTION_QUERY
+
+        # check if the query is valid for the board
+        if not _check_chess_data(exercise_db['initial_state'], proposed_solution, False):
+            return BAD_SOLUTION_QUERY
+
+        # compare query with real solution
+        result = _compare_exercise_solution(exercise_db['list_moves'], proposed_solution)
+
+        # create and return the envelope object
+        envelope = ChessApiObject(api.url_for(Solver, exerciseid=exerciseid), EXERCISE_PROFILE)
+        envelope.add_control('up', api.url_for(Exercise, exerciseid=exerciseid))
+        envelope['value'] = result
+        return Response(json.dumps(envelope), 200, mimetype=MASON+';'+EXERCISE_PROFILE)
 
 
 # TODO lorinc - redirect profiles

@@ -6,6 +6,7 @@ Created on 09.04.2018
 import unittest
 import json
 import flask
+import urllib.parse
 import chessApi.database as database
 import chessApi.resources as resources
 
@@ -15,6 +16,7 @@ CONTENT_TYPE = 'Content-Type'
 DEFAULT_BOARD_FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
 CUSTOM_BOARD_FEN = 'rnbqkbnr/pppppppp/5q2/8/8/5P2/PPPPP1PP/RNBQKBNR w KQkq - 0 1'
 FOOLS_MATE_MOVES = 'f3,e5,g4,Qh4#'
+FOOLS_MATE_MOVES_BEGINNING = 'f3,e5'
 NON_CHECKMATE_MOVES = 'Nc3,d5,Ne4,dxe4'
 CUSTOM_MOVES = 'g4,Qh4#'
 GOT_EXERCISES = {
@@ -213,6 +215,25 @@ MODIFY_EXERCISE_VALID_DATA = {
     'list-moves': 'Qxd5,Bxd5+,Be6,Bxe6#'
 }
 EXERCISE_1_AUTHOR_MAIL = 'mystery@mymail.com'
+GOT_SOLVER = {
+  '@namespaces': {
+    'chessapi': {
+      'name': '/api/link-relations/'
+    }
+  },
+  '@controls': {
+    'up': {
+      'href': '/api/exercises/1/'
+    },
+    'self': {
+      'href': '/api/exercises/1/solver/'
+    },
+    'profile': {
+      'href': '/profiles/exercise-profile/'
+    }
+  },
+  'value': 'SOLUTION'
+}
 
 resources.app.config['Testing'] = True
 resources.app.config['SERVER_NAME'] = 'localhost:5000'
@@ -402,6 +423,7 @@ class ExercisesTestCase(ResourcesApiTestCase):
         self.assertEqual(MODIFY_EXERCISE_VALID_DATA['initial-state'], data['initial-state'])
 
     def test_modify_exercise_non_existing(self):
+        """Checks if error message is correct when trying to modify non-existing exercise"""
         print('(' + self.test_modify_exercise_non_existing.__name__ + ')',
               self.test_modify_exercise_non_existing.__doc__)
         exercise_id = 100
@@ -411,6 +433,7 @@ class ExercisesTestCase(ResourcesApiTestCase):
         self._assertErrorMessage(resp, 404, 'Exercise does not exist')
 
     def test_modify_exercise_not_json(self):
+        """Checks if error message is correct when request format is not set"""
         print('(' + self.test_modify_exercise_not_json.__name__ + ')', self.test_modify_exercise_not_json.__doc__)
         exercise_id = 1
         resp = self.client.put(resources.api.url_for(resources.Exercise, exerciseid=exercise_id),
@@ -418,6 +441,7 @@ class ExercisesTestCase(ResourcesApiTestCase):
         self._assertErrorMessage(resp, 400, 'Wrong request format')
 
     def test_modify_exercise_missing_fields(self):
+        """Checks if error message is correct when required fields are missing from the request body"""
         print('(' + self.test_modify_exercise_missing_fields.__name__ + ')',
               self.test_modify_exercise_missing_fields.__doc__)
         request_data = MODIFY_EXERCISE_VALID_DATA.copy()
@@ -429,6 +453,7 @@ class ExercisesTestCase(ResourcesApiTestCase):
         self._assertErrorMessage(resp, 400, 'Missing fields')
 
     def test_modify_exercise_existing_title(self):
+        """Checks if error message is correct when trying to set the exercise headline to an existing one"""
         print('(' + self.test_modify_exercise_existing_title.__name__ + ')',
               self.test_modify_exercise_existing_title.__doc__)
         request_data = MODIFY_EXERCISE_VALID_DATA.copy()
@@ -440,6 +465,7 @@ class ExercisesTestCase(ResourcesApiTestCase):
         self._assertErrorMessage(resp, 400, 'Existing exercise headline')
 
     def test_modify_exercise_invalid_email(self):
+        """Checks if error message is correct when the provided user's email does not match the one in the database"""
         print('(' + self.test_modify_exercise_invalid_email.__name__ + ')',
               self.test_modify_exercise_invalid_email.__doc__)
         request_data = MODIFY_EXERCISE_VALID_DATA.copy()
@@ -451,6 +477,7 @@ class ExercisesTestCase(ResourcesApiTestCase):
         self._assertErrorMessage(resp, 401, 'Wrong authentication')
 
     def test_modify_exercise_invalid_chess_data(self):
+        """Checks if error message is correct when the provided chess data is not valid"""
         print('(' + self.test_modify_exercise_invalid_chess_data.__name__ + ')',
               self.test_modify_exercise_invalid_chess_data.__doc__)
         request_data = MODIFY_EXERCISE_VALID_DATA.copy()
@@ -462,6 +489,7 @@ class ExercisesTestCase(ResourcesApiTestCase):
         self._assertErrorMessage(resp, 400, 'Invalid chess data')
 
     def test_delete_exercise(self):
+        """Checks if exercises can be deleted"""
         print('(' + self.test_delete_exercise.__name__ + ')', self.test_delete_exercise.__doc__)
         exercise_id = 1
         resp = self.client.delete(resources.api.url_for(resources.Exercise, exerciseid=exercise_id)
@@ -471,12 +499,63 @@ class ExercisesTestCase(ResourcesApiTestCase):
         self._assertErrorMessage(resp, 404, 'Exercise does not exist')
 
     def test_delete_exercise_non_existing(self):
+        """Checks if error message is correct when a non-existing exercise is tried to be deleted"""
         print('(' + self.test_delete_exercise_non_existing.__name__ + ')',
               self.test_delete_exercise_non_existing.__doc__)
         exercise_id = 100
         resp = self.client.delete(resources.api.url_for(resources.Exercise, exerciseid=exercise_id)
                                   +'?author_email=mystery%40mymail.com')
         self._assertErrorMessage(resp, 404, 'Exercise does not exist')
+
+    def test_solver_value_solution(self):
+        """Checks solver module if the result is correct for identical strings"""
+        print('(' + self.test_solver_value_solution.__name__ + ')', self.test_solver_value_solution.__doc__)
+        self.assertEqual(resources.SOLVER_SOLUTION,
+                         resources._compare_exercise_solution(FOOLS_MATE_MOVES, FOOLS_MATE_MOVES))
+
+    def test_solver_value_partial(self):
+        """Checks solver module if the result is correct for beginning substring"""
+        print('(' + self.test_solver_value_partial.__name__ + ')', self.test_solver_value_partial.__doc__)
+        self.assertEqual(resources.SOLVER_PARTIAL,
+                         resources._compare_exercise_solution(FOOLS_MATE_MOVES, FOOLS_MATE_MOVES_BEGINNING))
+
+    def test_solver_value_wrong(self):
+        """Checks solver module if the result is correct for entirely different string"""
+        print('(' + self.test_solver_value_wrong.__name__ + ')', self.test_solver_value_wrong.__doc__)
+        self.assertEqual(resources.SOLVER_WRONG,
+                         resources._compare_exercise_solution(FOOLS_MATE_MOVES, NON_CHECKMATE_MOVES))
+
+    def test_get_solver(self):
+        """Checks if solver GET works"""
+        print('(' + self.test_get_solver.__name__ + ')', self.test_get_solver.__doc__)
+        exercise_id = 1
+        resp = self.client.get(resources.api.url_for(resources.Solver, exerciseid=exercise_id)+
+                               '?solution='+urllib.parse.quote_plus(FOOLS_MATE_MOVES))
+        self.assertEqual(200, resp.status_code)
+        self.assertDictEqual(GOT_SOLVER, json.loads(resp.data.decode('utf-8')))
+
+    def get_solver_non_existing(self):
+        """Checks error message when trying to access a non-existing exercise's solver"""
+        print('(' + self.get_solver_non_existing.__name__ + ')', self.get_solver_non_existing.__doc__)
+        exercise_id = 100
+        resp = self.client.get(resources.api.url_for(resources.Solver, exerciseid=exercise_id)+
+                               '?solution='+urllib.parse.quote_plus(FOOLS_MATE_MOVES))
+        self._assertErrorMessage(resp, 404, 'Exercise does not exist')
+
+    def get_solver_no_query(self):
+        """Checks error message when no solution query is provided"""
+        print('(' + self.get_solver_no_query.__name__ + ')', self.get_solver_no_query.__doc__)
+        exercise_id = 1
+        resp = self.client.get(resources.api.url_for(resources.Solver, exerciseid=exercise_id))
+        self._assertErrorMessage(resp, 400, 'Bad query')
+
+    def get_solver_nonsense_query(self):
+        """Checks error message when the provided query string is nonsense"""
+        print('(' + self.get_solver_nonsense_query.__name__ + ')', self.get_solver_nonsense_query.__doc__)
+        exercise_id = 1
+        resp = self.client.get(resources.api.url_for(resources.Solver, exerciseid=exercise_id)+
+                               '?solution='+urllib.parse.quote_plus("dksajakldjs"))
+        self._assertErrorMessage(resp, 400, 'Bad query')
 
 
 if __name__ == '__main__':
