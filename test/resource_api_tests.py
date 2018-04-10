@@ -41,7 +41,7 @@ GOT_EXERCISES = {
                     'list-moves': {
                         'type': 'string',
                         'title': 'List of moves',
-                        'description': 'PGN code movelist of the exercise solution'
+                        'description': 'comma-separated SAN entries movelist of the exercise solution'
                     },
                     'initial-state': {
                         'type': 'string',

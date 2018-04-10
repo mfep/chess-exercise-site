@@ -68,7 +68,7 @@ class ChessApiObject(dict):
                     },
                     'list-moves': {
                         'title': 'List of moves',
-                        'description': 'PGN code movelist of the exercise solution',
+                        'description': 'comma-separated SAN entries movelist of the exercise solution',
                         'type': 'string'
                     },
                     'author': {
@@ -112,7 +112,7 @@ class ChessApiObject(dict):
                     },
                     'list-moves': {
                         'title': 'List of moves',
-                        'description': 'PGN code movelist of the exercise solution',
+                        'description': 'comma-separated SAN entries movelist of the exercise solution',
                         'type': 'string'
                     },
                     'author-email': {

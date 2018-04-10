@@ -211,7 +211,7 @@ class Connection(object):
             * ``description``: description of the exercise
             * ``sub_date``: the UNIX timestamp of the exercise submission
             * ``initial_state``: the FEN code of the initial state of the exercise
-            * ``list_moves``: PGN string of the exercise solution
+            * ``list_moves``: string of the exercise solution
         """
         return {
             'exercise_id': row['exercise_id'],
