@@ -18,99 +18,99 @@ FOOLS_MATE_MOVES = 'f3,e5,g4,Qh4#'
 NON_CHECKMATE_MOVES = 'Nc3,d5,Ne4,dxe4'
 CUSTOM_MOVES = 'g4,Qh4#'
 GOT_EXERCISES = {
-    'items': [{
-        'headline': 'Easy one',
-        'author': 'Mystery',
-        '@controls': {
-            'self': {
-                'href': '/api/exercises/1/'
-            },
-            'profile': {
-                'href': '/profiles/exercise-profile/'
-            }
-        }
-    }, {
-        'headline': 'Easier one',
-        'author': 'Mystery',
-        '@controls': {
-            'self': {
-                'href': '/api/exercises/2/'
-            },
-            'profile': {
-                'href': '/profiles/exercise-profile/'
-            }
-        }
-    }, {
-        'headline': 'Tough',
-        'author': 'Koodari',
-        '@controls': {
-            'self': {
-                'href': '/api/exercises/3/'
-            },
-            'profile': {
-                'href': '/profiles/exercise-profile/'
-            }
-        }
-    }],
-    '@namespaces': {
-        'chessapi': {
-            'name': '/api/link-relations/'
-        }
-    },
     '@controls': {
-        'self': {
-            'href': '/api/exercises/'
-        },
-        'chessapi:add-exercise': {
-            'method': 'POST',
-            'schema': {
-                'properties': {
-                    'about': {
-                        'description': 'Exercise description',
-                        'type': 'string',
-                        'title': 'About'
-                    },
-                    'initial-state': {
-                        'description': 'FEN code of the initial board state',
-                        'type': 'string',
-                        'title': 'Initial state'
-                    },
-                    'list-moves': {
-                        'description': 'PGN code movelist of the exercise solution',
-                        'type': 'string',
-                        'title': 'List of moves'
-                    },
-                    'author-email': {
-                        'description': 'The author\'s email address. Used for authentication.',
-                        'type': 'string',
-                        'title': 'Author Email'
-                    },
-                    'headline': {
-                        'description': 'Exercise title',
-                        'type': 'string',
-                        'title': 'Headline'
-                    },
-                    'author': {
-                        'description': 'Submitter of the exercise',
-                        'type': 'string',
-                        'title': 'Author'
-                    }
-                },
-                'required': ['headline', 'intial-state', 'list-moves', 'author', 'author-email'],
-                'type': 'object'
-            },
-            'encoding': 'json',
-            'title': 'Submit a new exercise',
-            'href': '/api/exercises/'
-        },
         'chessapi:users-all': {
             'method': 'GET',
             'href': '/api/users/'
         },
         'profile': {
             'href': '/profiles/exercise-profile/'
+        },
+        'self': {
+            'href': '/api/exercises/'
+        },
+        'chessapi:add-exercise': {
+            'schema': {
+                'type': 'object',
+                'properties': {
+                    'headline': {
+                        'type': 'string',
+                        'title': 'Headline',
+                        'description': 'Exercise title'
+                    },
+                    'list-moves': {
+                        'type': 'string',
+                        'title': 'List of moves',
+                        'description': 'PGN code movelist of the exercise solution'
+                    },
+                    'initial-state': {
+                        'type': 'string',
+                        'title': 'Initial state',
+                        'description': 'FEN code of the initial board state'
+                    },
+                    'about': {
+                        'type': 'string',
+                        'title': 'About',
+                        'description': 'Exercise description'
+                    },
+                    'author-email': {
+                        'type': 'string',
+                        'title': 'Author Email',
+                        'description': 'The author\'s email address. Used for authentication.'
+                    },
+                    'author': {
+                        'type': 'string',
+                        'title': 'Author',
+                        'description': 'Submitter of the exercise'
+                    }
+                },
+                'required': ['headline', 'intial-state', 'list-moves', 'author', 'author-email']
+            },
+            'method': 'POST',
+            'encoding': 'json',
+            'title': 'Submit a new exercise',
+            'href': '/api/exercises/'
         }
-    }
+    },
+    '@namespaces': {
+        'chessapi': {
+            'name': '/api/link-relations/'
+        }
+    },
+    'items': [{
+        'headline': 'Fool Mate',
+        '@controls': {
+            'profile': {
+                'href': '/profiles/exercise-profile/'
+            },
+            'self': {
+                'href': '/api/exercises/1/'
+            }
+        },
+        'author': 'Mystery'
+    }, {
+        'headline': 'Fool Mate II',
+        '@controls': {
+            'profile': {
+                'href': '/profiles/exercise-profile/'
+            },
+            'self': {
+                'href': '/api/exercises/2/'
+            }
+        },
+        'author': 'Mystery'
+    }, {
+        'headline': 'Simple bishop',
+        '@controls': {
+            'profile': {
+                'href': '/profiles/exercise-profile/'
+            },
+            'self': {
+                'href': '/api/exercises/3/'
+            }
+        },
+        'author': 'Koodari'
+    }]
 }
 ADD_EXERCISE_VALID_DATA = {
   'headline': 'Newly added',
@@ -158,6 +158,16 @@ class ResourcesApiTestCase(unittest.TestCase):
 
 class ExercisesTestCase(ResourcesApiTestCase):
     url = '/api/exercises/'
+
+    def test_database_contains_valid_chess_data(self):
+        """Tests if the default database contains chess data reported as valid"""
+        print('(' + self.test_database_contains_valid_chess_data.__name__ + ')',
+              self.test_database_contains_valid_chess_data.__doc__)
+        engine = database.Engine()
+        con = engine.connect()
+        for exercise_list_item in con.get_exercises():
+            exercise_data = con.get_exercise(exercise_list_item['exercise_id'])
+            self.assertTrue(resources._check_chess_data(exercise_data['initial_state'], exercise_data['list_moves']))
 
     def test_check_chess_data_default_board(self):
         """Tests if checkmate from default board state is reported as correct"""
@@ -230,7 +240,7 @@ class ExercisesTestCase(ResourcesApiTestCase):
         """Check if error code is correct when an existing exercise name is provided"""
         print('(' + self.test_add_exercise_existing_title.__name__ + ')', self.test_add_exercise_existing_title.__doc__)
         request_data = ADD_EXERCISE_VALID_DATA.copy()
-        request_data['headline'] = 'Tough'
+        request_data['headline'] = 'Fool Mate'
         resp = self.client.post(resources.api.url_for(resources.Exercises),
                                 headers={CONTENT_TYPE: resources.JSON},
                                 data=json.dumps(request_data))
