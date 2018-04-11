@@ -300,38 +300,56 @@ resources.app.config['SERVER_NAME'] = 'localhost:5000'
 resources.app.config.update({'Engine': ENGINE})
 
 
-# TODO document code
 class ResourcesApiTestCase(unittest.TestCase):
+    """
+    Common TestCase methods setup, teardown and convenience methods.
+    """
     @classmethod
     def setUpClass(cls):
+        """
+        Creates the database structure. Removes any pre-existing database file.
+        """
         print('Testing ', cls.__name__)
         ENGINE.remove_database()
         ENGINE.create_tables()
 
     @classmethod
     def tearDownClass(cls):
+        """
+        Removes the database file.
+        """
         print('Testing ended for ', cls.__name__)
         ENGINE.remove_database()
 
     def setUp(self):
+        """
+        Populates the database.
+        """
         ENGINE.populate_tables()
         self.app_context = resources.app.app_context()
         self.app_context.push()
         self.client = resources.app.test_client()
 
     def tearDown(self):
+        """
+        Removes all records from the database.
+        """
         ENGINE.clear()
         self.app_context.pop()
 
     def _assertErrorMessage(self, resp, code, message):
+        """
+        Convenience method for asserting on MASON responses of 40X status codes.
+        :param resp: flask.Response object
+        :param code: HTTP status code to expect
+        :param message: Error message to expect
+        """
         self.assertEqual(code, resp.status_code)
         data = json.loads(resp.data.decode('utf-8'))
         self.assertEqual(message, data['@error']['@message'])
 
 
 class ExercisesTestCase(ResourcesApiTestCase):
-    url = '/api/exercises/'
-
     def test_database_contains_valid_chess_data(self):
         """Tests if the default database contains chess data reported as valid"""
         print('(' + self.test_database_contains_valid_chess_data.__name__ + ')',
@@ -369,7 +387,8 @@ class ExercisesTestCase(ResourcesApiTestCase):
     def test_url(self):
         """Checks that the URL points to the right resource"""
         print('('+self.test_url.__name__+')', self.test_url.__doc__)
-        with resources.app.test_request_context(self.url):
+        url = '/api/exercises/'
+        with resources.app.test_request_context(url):
             rule = flask.request.url_rule
             view_point = resources.app.view_functions[rule.endpoint].view_class
             self.assertEqual(view_point, resources.Exercises)
@@ -619,6 +638,15 @@ class ExercisesTestCase(ResourcesApiTestCase):
 
 
 class UsersTestCase(ResourcesApiTestCase):
+    def test_url(self):
+        """Checks that the URL points to the right resource"""
+        print('('+self.test_url.__name__+')', self.test_url.__doc__)
+        url = '/api/users/'
+        with resources.app.test_request_context(url):
+            rule = flask.request.url_rule
+            view_point = resources.app.view_functions[rule.endpoint].view_class
+            self.assertEqual(view_point, resources.Users)
+
     def test_get_submissions(self):
         """Checks if user submissions can be retrieved"""
         print('(' + self.test_get_submissions.__name__ + ')', self.test_get_submissions.__doc__)

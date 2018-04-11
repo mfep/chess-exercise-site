@@ -595,6 +595,17 @@ class Exercise(Resource):
         return Response(status=204)
 
     def delete(self, exerciseid):
+        """
+        Implementation of deleting an exercise via a DELETE HTTP request.
+        The email address of the author is required for authentication purposes as an url query.
+        HTTP status codes:
+            204 - the exercise has been successfully deleted
+            401 - the provided email address does not match the one in the database
+            404 - the exercise with the given id does not exist
+            500 - database error
+        :param exerciseid: the identifier number of the exercise
+        :return: flask.Response of the status code and response body.
+        """
         # check if exercise exists
         exercise_db = g.con.get_exercise(exerciseid)
         if not exercise_db:
@@ -612,7 +623,22 @@ class Exercise(Resource):
 
 
 class Solver(Resource):
+    """
+    Resource representation of the exercise solver.
+    """
     def get(self, exerciseid):
+        """
+        Performs the response to the GET request to the Solver resource.
+        A query string containing a comma-separated list of SAN moves has to be provided.
+        The returned data's `value` field reports if the query is the solution, part of the solution or invalid.
+        HTTP status codes:
+            200 - the solver data returned correctly
+            400 - the provided solution query is not a valid SAN movelist for the current exercise
+            404 - the exercise with the given id does not exist
+            500 - database error
+        :param exerciseid: the identifier number of the exercise
+        :return: flask.Response of the status code and response body.
+        """
         # check if exercise exists
         exercise_db = g.con.get_exercise(exerciseid)
         if not exercise_db:
@@ -620,8 +646,6 @@ class Solver(Resource):
 
         # fetch the query list-moves
         proposed_solution = request.args.get('solution')
-        if not proposed_solution:
-            return BAD_SOLUTION_QUERY
 
         # check if the query is valid for the board
         if not _check_chess_data(exercise_db['initial_state'], proposed_solution, False):
