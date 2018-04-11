@@ -29,7 +29,20 @@ api = Api(app)
 
 
 class ChessApiObject(dict):
+    """
+    A convenience class that provides shorthands to add hypermedia-specific
+    key-value pairs to a dictionary object. The used hypermedia format is MASON.
+    The class can be used for constructing the response bodies for the REST
+    resource requests.
+    """
     def __init__(self, self_href, profile, add_namespace=True, **kwargs):
+        """
+        On initialization some MASON fields can be added to the dictionary.
+        :param self_href: The url of the resource.
+        :param profile: The profile associated with the resource.
+        :param add_namespace: Wheter add the default namespace defined by `LINK_RELATIONS`
+        :param kwargs: Additional dictionary arguments.
+        """
         super(ChessApiObject, self).__init__(**kwargs)
         if add_namespace:
             self['@namespaces'] = {
@@ -42,6 +55,12 @@ class ChessApiObject(dict):
         self.add_control('profile', profile)
 
     def add_control(self, name, href, method = None):
+        """
+        Add another MASON @control object to the dictionary.
+        :param name: Name of the control.
+        :param href: Url of the control.
+        :param method: Optional. HTTP method of the control.
+        """
         self['@controls'][name] = {
             'href': href
         }
@@ -49,6 +68,9 @@ class ChessApiObject(dict):
             self['@controls'][name]['method'] = method
 
     def add_add_exercise_control(self):
+        """
+        Shorthand for adding the chessapi:add-exercise control to the object.
+        """
         self['@controls']['chessapi:add-exercise'] = {
             'title': 'Submit a new exercise',
             'href': api.url_for(Exercises),
@@ -93,6 +115,9 @@ class ChessApiObject(dict):
         }
 
     def add_edit_exercise_control(self, exerciseid):
+        """
+        Shorthand for adding the edit control to the object.
+        """
         self['@controls']['edit'] = {
             'title': 'Edit this exercise',
             'href': api.url_for(Exercise, exerciseid=exerciseid),
@@ -132,6 +157,9 @@ class ChessApiObject(dict):
         }
 
     def add_solver_control(self, exerciseid):
+        """
+        Shorthand for adding the chessapi:exercise-solver control to the object.
+        """
         self['@controls']['chessapi:exercise-solver'] = {
             'title': 'Exercise Solver',
             'href': api.url_for(Solver, exerciseid=exerciseid)[0:-1]+'{?solution}',
@@ -150,19 +178,40 @@ class ChessApiObject(dict):
         }
 
     def add_users_all_control(self):
+        """
+        Shorthand for adding the chessapi:users-all control to the object.
+        """
         self.add_control('chessapi:users-all', api.url_for(Users), 'GET')
 
 
 def _check_existing_nickname(nickname):
+    """
+    Checks if a user with a given nickname is present in the database or not.
+    :param nickname: The nickname to be checked.
+    :return: `True` if the user with the nickname is present.
+    """
     return g.con.get_user(nickname) is not None
 
 
 def _check_author_email(nickname, submitted_mail):
+    """
+    Checks if the given email address matches the one in the database.
+    :param nickname: The user's nickname whose email address is being checked.
+    :param submitted_mail: The email address which needs to be checked if it's the same as in the db.
+    :return: `True` if the submitted email address matches the one in the database.
+    """
     user = g.con.get_user(nickname)
     return user['email'] == submitted_mail
 
 
 def _check_chess_data(initial_state, list_moves, checkmate_needed=True):
+    """
+    Checks if a given initial board state and a list of SAN moves is valid with the rules of chess.
+    :param initial_state: FEN string of the initial board state.
+    :param list_moves: Comma-separated list of SAN moves.
+    :param checkmate_needed: Wheter it's required to have a checkmate at the end of the moves or not.
+    :return: `True` if the provided data is valid chess-wise.
+    """
     # TODO weiping : update documentation. we're not using PGN anymore, but a simpler notation
     # which consists of comma-separated SAN entries
     # to be updated:
@@ -184,11 +233,24 @@ def _check_chess_data(initial_state, list_moves, checkmate_needed=True):
 
 
 def _check_free_exercise_title(title):
+    """
+    Checks if the given exercise headline exists already in the database.
+    :param title: The headline string to be checked.
+    :return: `True` if the given headline does not exist in the database.
+    """
     exercises_db = g.con.get_exercises()
     return not any(map(lambda ex: ex['title'] == title, exercises_db))
 
 
 def _compare_exercise_solution(solution, proposed):
+    """
+    Compares a proposed solution string with the actual solution of the exercise.
+    :param solution: The 'real' solution of the exercise.
+    :param proposed: The proposed solution.
+    :return: `SOLVER_SOLUTION` if the proposed solution is the actual solution.
+        `SOLVER_PARTIAL` if the proposed solution is the beginning of the actual solution.
+        `SOLVER_WRONG` otherwise.
+    """
     if solution == proposed:
         return SOLVER_SOLUTION
     if solution.find(proposed) == 0:
@@ -197,15 +259,21 @@ def _compare_exercise_solution(solution, proposed):
 
 
 def _create_exercise_items_list(exercises_db):
-        items = []
-        if not exercises_db:
-            return items
-        for exercise_db in exercises_db:
-            ex = ChessApiObject(api.url_for(Exercise, exerciseid=exercise_db['exercise_id']), EXERCISE_PROFILE, False)
-            ex['headline'] = exercise_db['title']
-            ex['author'] = exercise_db['author']
-            items.append(ex)
+    """
+    From a list of exercises fetched from the database creates a list of exercise object which can be returned
+    by the API.
+    :param exercises_db: The list of exercises fetched from the database.
+    :return: The list of exercises as hypermedia objects (MASON).
+    """
+    items = []
+    if not exercises_db:
         return items
+    for exercise_db in exercises_db:
+        ex = ChessApiObject(api.url_for(Exercise, exerciseid=exercise_db['exercise_id']), EXERCISE_PROFILE, False)
+        ex['headline'] = exercise_db['title']
+        ex['author'] = exercise_db['author']
+        items.append(ex)
+    return items
 
 
 def create_error_response(status_code, title, message=None):
@@ -324,7 +392,21 @@ class User(Resource):
 
 
 class Submissions(Resource):
+    """
+    Resource that represents a list of exercises submitted by a particular user.
+    """
     def get(self, nickname):
+        """
+        Implementation of the response to a GET request to a Submissions resource.
+        The returned list of items is empty if there is no exercises submitted by the user.
+        The format of the list is defined in `_create_exercise_items_list` function.
+        HTTP status codes:
+            200 - the list of exercises is returned correctly
+            404 - the user with `nickname` does not exist
+            500 - database error
+        :param nickname: The nickname of the user.
+        :return: flask.Response of the status code and response body.
+        """
         # check if user exists
         if not g.con.get_user(nickname):
             return MISSING_USER_RESP
@@ -342,7 +424,18 @@ class Submissions(Resource):
 
 
 class Exercises(Resource):
+    """
+    Resource that represents the list of chess exercises.
+    """
     def get(self):
+        """
+        Implmentation of the response to a GET request to the Exercises resource.
+        Returns empty list when there's no exercises in the database.
+        HTTP status codes:
+            200 - the list of exercises retrieved correctly
+            500 - database error
+        :return: flask.Response of the status code and response body.
+        """
         # create envelope and add controls to it
         envelope = ChessApiObject(api.url_for(Exercises), EXERCISE_PROFILE)
         envelope.add_add_exercise_control()
@@ -356,6 +449,18 @@ class Exercises(Resource):
         return Response(json.dumps(envelope), 200, mimetype=MASON+';'+EXERCISE_PROFILE)
 
     def post(self):
+        """
+        Implementation of the addition of a new exercise to the database via POST HTTP request.
+        HTTP status codes:
+            201 - the new exercise has been created correctly.
+            400 - the Content-Type of the request is not JSON
+            400 - some required fields are missing from the request body
+            400 - the exercise title is already taken
+            401 - the email address of the author does not match the email address in the database
+            404 - the user with the given nickname does not exist
+            500 - database error
+        :return: flask.Response of the status code.
+        """
         # Check if json
         if JSON != request.headers.get('Content-Type', ''):
             return BAD_JSON_RESP
@@ -401,7 +506,19 @@ class Exercises(Resource):
 
 
 class Exercise(Resource):
+    """
+    Resource representation of the chess exercises.
+    """
     def get(self, exerciseid):
+        """
+        Implementation of the response to a GET request to the Exercise resource.
+        HTTP status codes:
+            200 - the exercise data is retrieved correctly
+            404 - the exercise with the given id does not exist
+            500 - database error
+        :param exerciseid: the identifier number of the exercise
+        :return: flask.Response of the status code and response body.
+        """
         # fetch exercise from database
         exercise_db = g.con.get_exercise(exerciseid)
         if not exercise_db:
@@ -425,6 +542,19 @@ class Exercise(Resource):
         return Response(json.dumps(envelope), 200, mimetype=MASON+';'+EXERCISE_PROFILE)
 
     def put(self, exerciseid):
+        """
+        Implementation of modifying an exercise via a PUT request.
+        HTTP status codes:
+            204 - the exercise has been correctly modified
+            400 - the Content-Type of the request is not JSON
+            400 - some required fields are missing from the request body
+            400 - the new exercise title is already taken
+            401 - the provided email address of the user does not match the one in the database
+            404 - the exercise with the given id does not exist
+            500 - database error
+        :param exerciseid: the identifier number of the exercise
+        :return: flask.Response of the status code and response body.
+        """
         # check if the exercise exists
         if not g.con.get_exercise(exerciseid):
             return missing_exercise_response(exerciseid)
