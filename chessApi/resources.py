@@ -6,14 +6,17 @@ Defines the REST resources used by the API.
 """
 import json
 import chess.pgn, chess
-from flask import Flask, request, Response, g, _request_ctx_stack
+from flask import Flask, request, Response, g, _request_ctx_stack, redirect
 from flask_restful import Resource, Api
 from chessApi import database
 
+APIARY_PROJECT = 'https://communitychess.docs.apiary.io'
+APIARY_PROFILES = APIARY_PROJECT + '/#reference/profiles/'
+APIARY_RELATIONS = APIARY_PROJECT + '/#reference/link-relations/'
 MASON = 'application/vnd.mason+json'
 JSON = 'application/json'
 EXERCISE_PROFILE = '/profiles/exercise-profile/'
-ERROR_PROFILE = '/profiles/error-profile'
+ERROR_PROFILE = '/profiles/error-profile/'
 LINK_RELATIONS = '/api/link-relations/'
 SOLVER_SOLUTION = 'SOLUTION'
 SOLVER_PARTIAL = 'PARTIAL'
@@ -504,7 +507,15 @@ class Solver(Resource):
         return Response(json.dumps(envelope), 200, mimetype=MASON+';'+EXERCISE_PROFILE)
 
 
-# TODO lorinc - redirect profiles
+@app.route('/api/profiles/<profile_name>/')
+def redirect_to_profile(profile_name):
+    return redirect(APIARY_PROFILES + profile_name)
+
+
+@app.route('/api/link-relations/<rel_name>/')
+def redirect_to_rels(rel_name):
+    return redirect(APIARY_RELATIONS + rel_name)
+
 
 api.add_resource(Users,       "/api/users/", endpoint="users")
 api.add_resource(User,        "/api/users/<nickname>/", endpoint="user")

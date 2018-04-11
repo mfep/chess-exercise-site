@@ -642,6 +642,7 @@ class UsersTestCase(ResourcesApiTestCase):
         resp = self.client.get(resources.api.url_for(resources.Submissions, nickname=nickname))
         self._assertErrorMessage(resp, 404, 'User not found')
 
+
 if __name__ == '__main__':
     print('Start running tests')
     unittest.main()
