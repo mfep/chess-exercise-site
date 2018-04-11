@@ -16,6 +16,12 @@ engine.create_tables() # loads schema from 'db/chessApi_schema_dump.sql' by defa
 engine.populate_tables() # loads data dump from 'db/chessApi_data_dump.sql' by default
 ```
 
+Running the REST API server
+---------------------------
+
+In this case, the default database path is used (`./db/chessApi.db`). In the project root folder:
+- `python -m chessApi.resources`
+
 Running the tests
 -----------------
 In the project root folder:
