@@ -736,7 +736,7 @@ class UsersTestCase(ResourcesApiTestCase):
         self.assertEqual(MODIFY_USER_VALID_DATA['email'], data['email'])
 
     def test_modify_user_non_existing(self):
-        """Checks if error message is correct when trying to modify non-existing exercise"""
+        """Checks if error message is correct when trying to modify non-existing user"""
         print('(' + self.test_modify_user_non_existing.__name__ + ')',
               self.test_modify_user_non_existing.__doc__)
         user_id = 100
@@ -766,7 +766,7 @@ class UsersTestCase(ResourcesApiTestCase):
         self._assertErrorMessage(resp, 400, 'Missing fields')
 
     def test_modify_user_existing_nickname(self):
-        """Checks if error message is correct when trying to set the exercise headline to an existing one"""
+        """Checks if error message is correct when trying to set the user nickname to an existing one"""
         print('(' + self.test_modify_user_existing_nickname.__name__ + ')',
               self.test_modify_user_existing_nickname.__doc__)
         request_data = MODIFY_USER_VALID_DATA.copy()
@@ -790,7 +790,7 @@ class UsersTestCase(ResourcesApiTestCase):
         self._assertErrorMessage(resp, 401, 'Wrong authentication')
 
     def test_delete_user(self):
-        """Checks if exercises can be deleted"""
+        """Checks if user can be deleted"""
         print('(' + self.test_delete_user.__name__ + ')', self.test_delete_user.__doc__)
         user_id = 1
         resp = self.client.delete(resources.api.url_for(resources.User, userid=user_id)
@@ -800,7 +800,7 @@ class UsersTestCase(ResourcesApiTestCase):
         self._assertErrorMessage(resp, 404, 'User does not exist')
 
     def test_delete_exercise_non_user(self):
-        """Checks if error message is correct when a non-existing exercise is tried to be deleted"""
+        """Checks if error message is correct when a non-existing user is tried to be deleted"""
         print('(' + self.test_delete_exercise_non_user.__name__ + ')',
               self.test_delete_exercise_non_user.__doc__)
         user_id = 100

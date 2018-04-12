@@ -305,8 +305,8 @@ def create_error_response(status_code, title, message=None):
 def _check_free_user_nickname(nickname):
     """
     Checks if the given exercise headline exists already in the database.
-    :param title: The headline string to be checked.
-    :return: `True` if the given headline does not exist in the database.
+    :param nickname: The nickname string to be checked.
+    :return: `True` if the given nickname does not exist in the database.
     """
     user_db = g.con.get_users()
     return not any(map(lambda ex: ex['nickname'] == nickname, user_db))
@@ -314,8 +314,8 @@ def _check_free_user_nickname(nickname):
 def _check_free_user_email(email):
     """
     Checks if the given exercise headline exists already in the database.
-    :param title: The headline string to be checked.
-    :return: `True` if the given headline does not exist in the database.
+    :param email: The headline string to be checked.
+    :return: `True` if the given email does not exist in the database.
     """
     user_db = g.con.get_users()
     return not any(map(lambda ex: ex['email'] == email, user_db))
