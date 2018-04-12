@@ -349,7 +349,7 @@ def existing_nickname_response(nickname):
 
 
 def existing_email_response(email):
-    return create_error_response(404, 'Email exist', 'Choose another email' + email)
+    return create_error_response(400, 'Email exist', 'Choose another email' + email)
 
 
 @app.errorhandler(400)
