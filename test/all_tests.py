@@ -10,11 +10,13 @@ import unittest
 from test.database_api_tests_user import UserDbApiTestCase
 from test.database_api_tests_exercise import ExerciseApiDbTestCase
 from test.resource_api_tests import ExercisesTestCase
+from test.resource_api_tests import UsersTestCase
 
 if __name__ == '__main__':
     suite = unittest.TestSuite((
         unittest.defaultTestLoader.loadTestsFromTestCase(UserDbApiTestCase),
         unittest.defaultTestLoader.loadTestsFromTestCase(ExerciseApiDbTestCase),
-        unittest.defaultTestLoader.loadTestsFromTestCase(ExercisesTestCase)
+        unittest.defaultTestLoader.loadTestsFromTestCase(ExercisesTestCase),
+        unittest.defaultTestLoader.loadTestsFromTestCase(UsersTestCase)
     ))
     unittest.main()

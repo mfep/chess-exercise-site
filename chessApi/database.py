@@ -358,6 +358,36 @@ class Connection(object):
                 return None
         return exerciseid
 
+    def modify_user(self, nickname, email):
+        """
+        Modify the title, the description the initial state of the message with given id.
+        ``exerciseid``
+        :param int userid: The id of the exercise to modify.
+        :param str nickname: the exercise's new title
+        :param str email: the exercise's new description
+       :return: the id of the edited exercise or None if the exercise was not found.
+        """
+        stmnt = 'UPDATE users SET nickname=:nickname, email=:email WHERE user_id=:exercise_id'
+
+        self.set_foreign_keys_support()
+        self.con.row_factory = sqlite3.Row
+        cur = self.con.cursor()
+
+        pvalue = {"user_id": userid,
+                  "nickname": nickname,
+                  "email": email,
+                }
+
+        try:
+            cur.execute(stmnt, pvalue)
+            self.con.commit()
+        except sqlite3.Error as e:
+            print("Error %s:" % (e.args[0]))
+        else:
+            if cur.rowcount < 1:
+                return None
+        return userid
+
     def create_exercise(self, title, description, creator, initial_state, list_moves):
         """
         :param str title: the exercises's title
