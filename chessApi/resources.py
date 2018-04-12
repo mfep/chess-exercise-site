@@ -15,6 +15,7 @@ JSON = 'application/json'
 EXERCISE_PROFILE = '/profiles/exercise-profile/'
 ERROR_PROFILE = '/profiles/error-profile'
 LINK_RELATIONS = '/api/link-relations/'
+USER_PROFILE = "/profiles/user-profile/"
 
 app = Flask(__name__)
 app.debug = True
@@ -35,7 +36,7 @@ class ChessApiObject(dict):
         self.add_control('self', self_href)
         self.add_control('profile', profile)
 
-    def add_control(self, name, href, method = None):
+    def add_control(self, name, href, method=None):
         self['@controls'][name] = {
             'href': href
         }
@@ -128,7 +129,7 @@ class ChessApiObject(dict):
     def add_solver_control(self, exerciseid):
         self['@controls']['chessapi:exercise-solver'] = {
             'title': 'Exercise Solver',
-            'href': api.url_for(Solver, exerciseid=exerciseid)[0:-1]+'{?solution}',
+            'href': api.url_for(Solver, exerciseid=exerciseid)[0:-1] + '{?solution}',
             'method': 'GET',
             'isHrefTemplate': True,
             'schema': {
@@ -204,10 +205,10 @@ def create_error_response(status_code, title, message=None):
             '@messages': [message]
         }
     }
-    return Response(json.dumps(envelope), status_code, mimetype=MASON+';'+ERROR_PROFILE)
+    return Response(json.dumps(envelope), status_code, mimetype=MASON + ';' + ERROR_PROFILE)
 
 
-BAD_JSON_RESP = create_error_response(400, 'Wrong request format', JSON+' is required')
+BAD_JSON_RESP = create_error_response(400, 'Wrong request format', JSON + ' is required')
 EXISTING_TITLE_RESP = create_error_response(400, 'Existing exercise headline',
                                             'The provided headline already exists in the database')
 MISSING_USER_RESP = create_error_response(404, 'User not found',
@@ -277,15 +278,88 @@ class User(Resource):
     # - docstrings
     # - tests
     # - check if the error responses are present in apiary
+    """
+        User Resource.
+    """
+
     def get(self, nickname):
-        pass
+        """
+           Get basic information of a user:
+
+           INPUT PARAMETER:
+          : param str nickname: Nickname of the required user.
+
+           OUTPUT:
+            * Return 200 if the nickname exists.
+            * Return 404 if the nickname is not stored in the system.
+
+           RESPONSE ENTITY BODY:
+
+           * Media type : application/vnd.mason+json
+           * Profile : application/vnd.mason+json
+
+           Link relations used: self, collection, user-public.
+
+           Semantic descriptors used: nickname and registrationdate
+        """
+        user_db = g.con.get_user(nickname)
+        if not user_db:
+            return create_error_response(404, 'Non existing resource',
+                                         'There is no user with this nickname ' + nickname)
+
+        regdate = user_db['registrationdate']
+        nickname = user_db['nickname']
+
+        envelope = ChessApiObject(api.url_for(User, nickname=nickname), USER_PROFILE, registrationdate=regdate, nickname=nickname)
+        envelope.add_control("profile", USER_PROFILE)
+        envelope.add_control("collection", href=api.url_for(Users))
+        envelope.add_control("self", href=api.url_for(User, nickname=nickname))
+        envelope.add_control("chessapi:user-submission", href=api.url_for(Submissions, nickname=nickname))
+        envelope.add_control("chessapi:all-exercises", href=api.url_for(Exercises))
+        envelope.add_control("chessapi:delete", api.url_for(User, nickname=nickname), "DELETE")
+        string_data = json.dumps(envelope)
+        return Response(string_data, 200, mimetype=MASON + ';' + USER_PROFILE)
 
     def put(self, nickname):
-        pass
+        # Check if the user exists
+        if not g.con.get_user(nickname):
+            return missing_user_response(nickname)
+
+        # Check if the requeste data is valid JSON
+        if JSON != request.headers.get('Content-Type'):
+            return BAD_JSON_RESP
+        request_body = request.get_json(force=True)
+
+        # extract fields
+        try:
+            email = request_body['email']
+        except KeyError:
+            return create_error_response(400, 'Nickname not Correct','Check the nickname and try again')
+
+        # check if user's nickname exists already
+        if not _check_free_user_nickname(nickname):
+            return EXISTING_NICKNAME_RESP
+
+        if nickname != g.con.modify_user(nickname, email):
+            return DB_PROBLEM_RESP
+        return Response(status=204)
 
     def delete(self, nickname):
-        pass
+        """
+               Delete a user in the system.
 
+              : param str nickname: Nickname of the required user.
+
+               RESPONSE STATUS CODE:
+                * If the user is deleted returns 204.
+                * If the nickname does not exist return 404
+               """
+        if g.con.delete_user(nickname):
+            return "", 204
+        else:
+            return create_error_response(404, "Unknown nickname",
+                                         "There is no a user with nickname %s" % nickname
+                                         )
 
 class Submissions(Resource):
     # TODO lorinc
@@ -310,13 +384,13 @@ class Exercises(Resource):
             items.append(ex)
 
         envelope['items'] = items
-        return Response(json.dumps(envelope), 200, mimetype=MASON+';'+EXERCISE_PROFILE)
+        return Response(json.dumps(envelope), 200, mimetype=MASON + ';' + EXERCISE_PROFILE)
 
     def post(self):
         # TODO lorinc : update error messages in apiary
 
         # Check if json
-        if JSON != request.headers.get('Content-Type',''):
+        if JSON != request.headers.get('Content-Type', ''):
             return BAD_JSON_RESP
         request_body = request.get_json(force=True)
 
@@ -381,7 +455,7 @@ class Exercise(Resource):
         envelope['headline'] = exercise_db['title']
         envelope['about'] = exercise_db['description']
 
-        return Response(json.dumps(envelope), 200, mimetype=MASON+';'+EXERCISE_PROFILE)
+        return Response(json.dumps(envelope), 200, mimetype=MASON + ';' + EXERCISE_PROFILE)
 
     def put(self, exerciseid):
         # TODO lorinc
@@ -399,12 +473,12 @@ class Solver(Resource):
 
 # TODO lorinc - redirect profiles
 
-api.add_resource(Users,       "/api/users/", endpoint="users")
-api.add_resource(User,        "/api/users/<nickname>/", endpoint="user")
+api.add_resource(Users, "/api/users/", endpoint="users")
+api.add_resource(User, "/api/users/<nickname>/", endpoint="user")
 api.add_resource(Submissions, "/api/users/<nickname>/submissions/", endpoint="submissions")
-api.add_resource(Exercises,   "/api/exercises/", endpoint="exercises")
-api.add_resource(Exercise,    "/api/exercises/<exerciseid>/", endpoint="exercise")
-api.add_resource(Solver,      "/api/exercises/<exerciseid>/solver/", endpoint="solver")
+api.add_resource(Exercises, "/api/exercises/", endpoint="exercises")
+api.add_resource(Exercise, "/api/exercises/<exerciseid>/", endpoint="exercise")
+api.add_resource(Solver, "/api/exercises/<exerciseid>/solver/", endpoint="solver")
 
 if __name__ == '__main__':
     app.run(debug=True)
