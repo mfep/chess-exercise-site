@@ -10,6 +10,8 @@ import sqlite3
 import os
 import time
 
+import row as row
+
 DEFAULT_DB_PATH = 'db/chessApi.db'
 DEFAULT_SCHEMA = "db/chessApi_schema_dump.sql"
 DEFAULT_DATA_DUMP = "db/chessApi_data_dump.sql"
@@ -362,18 +364,22 @@ class Connection(object):
         """
         Modify the title, the description the initial state of the message with given id.
         ``exerciseid``
-        :param int userid: The id of the exercise to modify.
         :param str nickname: the exercise's new title
         :param str email: the exercise's new description
        :return: the id of the edited exercise or None if the exercise was not found.
         """
-        stmnt = 'UPDATE users SET nickname=:nickname, email=:email WHERE user_id=:exercise_id'
+        stmnt = 'UPDATE users SET nickname=:nickname, email=:email WHERE user_id=:user_id'
 
         self.set_foreign_keys_support()
         self.con.row_factory = sqlite3.Row
         cur = self.con.cursor()
 
-        pvalue = {"user_id": userid,
+        user_id = row['user_id']
+        query2 = 'SELECT * FROM users WHERE user_id = ?'
+        pvalue = (user_id,)
+        cur.execute(query2, pvalue)
+
+        pvalue = {"user_id": user_id,
                   "nickname": nickname,
                   "email": email,
                 }
@@ -386,7 +392,7 @@ class Connection(object):
         else:
             if cur.rowcount < 1:
                 return None
-        return userid
+        return user_id
 
     def create_exercise(self, title, description, creator, initial_state, list_moves):
         """

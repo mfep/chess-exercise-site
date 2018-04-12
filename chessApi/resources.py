@@ -311,6 +311,15 @@ def _check_free_user_nickname(nickname):
     user_db = g.con.get_users()
     return not any(map(lambda ex: ex['nickname'] == nickname, user_db))
 
+def _check_free_user_email(email):
+    """
+    Checks if the given exercise headline exists already in the database.
+    :param title: The headline string to be checked.
+    :return: `True` if the given headline does not exist in the database.
+    """
+    user_db = g.con.get_users()
+    return not any(map(lambda ex: ex['email'] == email, user_db))
+
 
 BAD_JSON_RESP = create_error_response(400, 'Wrong request format', JSON + ' is required')
 EXISTING_TITLE_RESP = create_error_response(400, 'Existing exercise headline',
@@ -337,6 +346,10 @@ def missing_exercise_response(exerciseid):
 
 def existing_nickname_response(nickname):
     return create_error_response(404, 'Nickname exist', 'Choose another nickname' + nickname)
+
+
+def existing_email_response(email):
+    return create_error_response(404, 'Email exist', 'Choose another email' + email)
 
 
 @app.errorhandler(400)
@@ -441,9 +454,7 @@ class User(Resource):
         return Response(string_data, 200, mimetype=MASON + ';' + USER_PROFILE)
 
     def put(self, nickname):
-        # Check if the user exists
-        if not g.con.get_user(nickname):
-            return existing_nickname_response(nickname)
+
 
         # Check if the requested data is valid JSON
         if JSON != request.headers.get('Content-Type'):
@@ -459,9 +470,13 @@ class User(Resource):
             return create_error_response(400, 'Missing fields',
                                          'Be sure you to fill the nickname field,'
                                          'email and former email field.')
-        # check if the user exists
+        # Check if the user exists
+        if not g.con.get_user(nickname):
+            return existing_nickname_response(nickname)
 
         # check if the email addresses match
+        if not _check_free_user_email(email):
+            return existing_email_response(email)
 
         # check if new nickname exists already
         if not _check_free_user_nickname(nickname):
