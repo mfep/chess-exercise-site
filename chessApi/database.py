@@ -534,3 +534,26 @@ class Connection(object):
 
         else:
             return None
+
+    def get_user_id(self, nickname):
+        query1 = 'SELECT user_id FROM users WHERE nickname = ?'
+        # query2 = 'SELECT user_id FROM users WHERE email = ?'
+        self.set_foreign_keys_support()
+        self.con.row_factory = sqlite3.Row
+        cur = self.con.cursor()
+        pvalue1 = (nickname,)
+        # pvalue2 = (email,)
+        cur.execute(query1, pvalue1)
+        # cur.execute(query2, pvalue2)
+        row = cur.fetchone()
+        if row is None:
+            return None
+        # Build the return object
+        else:
+            return row[0]
+
+    def contains_user(self, nickname):
+        """
+        :return: True if the user is in the database. False otherwise
+        """
+        return self.get_user_id(nickname) is not None

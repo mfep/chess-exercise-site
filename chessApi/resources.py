@@ -7,11 +7,12 @@ Defines the REST resources used by the API.
 import json
 import chess.pgn, chess
 from flask import Flask, request, Response, g, _request_ctx_stack
-from flask_restful import Resource, Api
+from flask_restful import Resource, Api, abort
 from chessApi import database
 
 MASON = 'application/vnd.mason+json'
 JSON = 'application/json'
+USER_PROFILE = '/profiles/user-profile/'
 EXERCISE_PROFILE = '/profiles/exercise-profile/'
 ERROR_PROFILE = '/profiles/error-profile'
 LINK_RELATIONS = '/api/link-relations/'
@@ -146,6 +147,29 @@ class ChessApiObject(dict):
     def add_users_all_control(self):
         self.add_control('chessapi:users-all', api.url_for(Users), 'GET')
 
+    def add_add_users_control(self):
+        self['@controls']['chessapi:add-user'] = {
+            'title': 'Add a new user',
+            'href': api.url_for(Users),
+            'encoding': 'json',
+            'method': 'POST',
+            'schema': {
+                'type': 'object',
+                'properties': {
+                    'nickname': {
+                        'title': 'Nickname',
+                        'description': ' Unique id string of the user',
+                        'type': 'string'
+                    },
+                    'email': {
+                        'title': 'Email address',
+                        'description': 'email address of the user.',
+                        'type': 'string'
+                    }
+                },
+                'required': ['nickname', 'email']
+            }
+        }
 
 def _check_existing_nickname(nickname):
     return g.con.get_user(nickname) is not None
@@ -207,8 +231,9 @@ def create_error_response(status_code, title, message=None):
     return Response(json.dumps(envelope), status_code, mimetype=MASON+';'+ERROR_PROFILE)
 
 
-BAD_JSON_RESP = create_error_response(400, 'Wrong request format', JSON+' is required')
-EXISTING_TITLE_RESP = create_error_response(400, 'Existing exercise headline',
+BAD_JSON_RESP = create_error_response(415, 'Wrong request format', JSON+' is required')
+MISSING_USER_DATA = create_error_response(400, "Wrong request format", "Be sure you include nickname and email")
+EXISTING_TITLE_RESP = create_error_response(409, 'Existing exercise headline',
                                             'The provided headline already exists in the database')
 MISSING_USER_RESP = create_error_response(404, 'User not found',
                                           'The provided nickname does not exist in the database.')
@@ -264,12 +289,68 @@ class Users(Resource):
     # - docstrings
     # - tests
     # - check if the error responses are present in apiary
+    """
+    Gets a list of all the users in the database.
+    It retures 200.
+    """
+
     def get(self):
-        pass
+        # get the list of users from the database
+        users_db = g.con.get_users()
+
+        # create envelope and add controls to it
+        envelope = ChessApiObject(api.url_for(Users), USER_PROFILE)
+        envelope.add_users_all_control()
+        envelope.add_add_users_control()
+
+        items = envelope["items"] = []
+
+        for user in users_db:
+            item = ChessApiObject(
+                api.url_for(User, nickname=user["nickname"]),
+                USER_PROFILE,
+                False,
+                nickname=user["nickname"],
+                registrationdate=user["registrationdate"]
+            )
+            items.append(item)
+
+        return Response(json.dumps(envelope), 200, mimetype=MASON+";" + USER_PROFILE)
 
     def post(self):
-        pass
+        """
+        Adds a new user in the database.
+        """
 
+        if JSON != request.headers.get("Content-Type", ""):
+            return BAD_JSON_RESP
+        request_body = request.get_json(force=True)
+
+        # pick up nickname to check for conflicts
+        try:
+            nickname = request_body["nickname"]
+            email = request_body["email"]
+        except KeyError:
+            return MISSING_USER_DATA
+
+        # Conflict if user already exist
+        if g.con.contains_user(nickname):
+            return create_error_response(409, "Reserved nickname",
+                                         "There is already a user with same "
+                                         "nickname:%s." % nickname)
+
+        user = {"nickname": nickname,
+                "email": email
+                }
+        try:
+            nickname = g.con.append_user(nickname, email)
+
+        except ValueError:
+            return MISSING_USER_DATA
+
+        # CREATE RESPONSE AND RENDER
+        return Response(status=201,
+            headers={"Location": api.url_for(User, nickname=nickname)})
 
 class User(Resource):
     # TODO antonio
@@ -277,7 +358,11 @@ class User(Resource):
     # - docstrings
     # - tests
     # - check if the error responses are present in apiary
-    def get(self, nickname):
+    def get(self, nickname) -> object:
+        """
+
+        :rtype: object
+        """
         pass
 
     def put(self, nickname):
@@ -289,12 +374,20 @@ class User(Resource):
 
 class Submissions(Resource):
     # TODO lorinc
-    def get(self, nickname):
+    def get(self, nickname) -> object:
+        """
+
+        :rtype: object
+        """
         pass
 
 
 class Exercises(Resource):
-    def get(self):
+    def get(self) -> object:
+        """
+
+        :rtype: object
+        """
         # create envelope and add controls to it
         envelope = ChessApiObject(api.url_for(Exercises), EXERCISE_PROFILE)
         envelope.add_add_exercise_control()
@@ -360,7 +453,11 @@ class Exercises(Resource):
 
 
 class Exercise(Resource):
-    def get(self, exerciseid):
+    def get(self, exerciseid) -> object:
+        """
+
+        :rtype: object
+        """
         # fetch exercise from database
         exercise_db = g.con.get_exercise(exerciseid)
         if not exercise_db:
@@ -393,7 +490,11 @@ class Exercise(Resource):
 
 
 class Solver(Resource):
-    def get(self, exerciseid, proposed_solution):
+    def get(self, exerciseid, proposed_solution) -> object:
+        """
+
+        :rtype: object
+        """
         pass
 
 
