@@ -5,7 +5,8 @@ Defines the REST resources used by the API.
 
 """
 import json
-import chess.pgn, chess
+import chess
+import chess.pgn
 from flask import Flask, request, Response, g, _request_ctx_stack, redirect
 from flask_restful import Resource, Api
 from chessApi import database
@@ -209,6 +210,7 @@ class ChessApiObject(dict):
             }
         }
 
+
 def _check_existing_nickname(nickname):
     """
     Checks if a user with a given nickname is present in the database or not.
@@ -362,7 +364,7 @@ def missing_user_response(nickname):
 
 
 def existing_nickname_response(nickname):
-    return create_error_response(409, 'Nickname exist', 'Choose another nickname' + nickname)
+    return create_error_response(409, 'Nickname already exists', 'Choose another nickname' + nickname)
 
 
 @app.errorhandler(400)
@@ -406,17 +408,18 @@ def close_connection(exc):
 
 
 class Users(Resource):
-    # TODO weiping
-    # - code
-    # - docstrings
-    # - tests
-    # - check if the error responses are present in apiary
     """
-    Gets a list of all the users in the database.
-    It retures 200.
+    Resource to list all users in the database.
     """
-
     def get(self):
+        """
+        Implmentation of the response to a GET request to the Users resource.
+        Returns empty list when there's no users in the database.
+        HTTP status codes:
+            200 - the list of exercises retrieved correctly
+            500 - database error
+        :return: flask.Response of the status code and response body.
+        """
         # get the list of users from the database
         users_db = g.con.get_users()
 
@@ -441,11 +444,17 @@ class Users(Resource):
 
     def post(self):
         """
-        Adds a new user in the database.
+        Implementation of the addition of a new user to the database via POST HTTP request.
+        HTTP status codes:
+            201 - the new user has been created correctly.
+            400 - some required fields are missing from the request body
+            409 - the user nickname is already taken
+            415 - the Content-Type of the request is not JSON
+            500 - database error
+        :return: flask.Response of the response body and status code.
         """
-
-        if JSON != request.headers.get("Content-Type", ""):
-            return BAD_JSON_RESP
+        if JSON != request.headers.get(CONTENT_TYPE):
+            return NOT_JSON_RESP
         request_body = request.get_json(force=True)
 
         # pick up nickname to check for conflicts
@@ -453,30 +462,19 @@ class Users(Resource):
             nickname = request_body["nickname"]
             email = request_body["email"]
         except KeyError:
-            return MISSING_USER_DATA
+            return create_error_response(400, 'Missing fields', 'Be sure to include nickname and email')
 
         # Conflict if user already exist
-        if g.con.contains_user_nickname(nickname):
-            return create_error_response(409, "Reserved nickname",
-                                         "There is already a user with same "
-                                         "nickname:%s." % nickname)
-        if g.con.contains_user_email(email):
-            return create_error_response(409, "Reserved email",
-                                         "There is already a user with same "
-                                         "email:%s." % email)
+        if g.con.get_user(nickname):
+            return existing_nickname_response(nickname)
 
-        user = {"nickname": nickname,
-                "email": email
-                }
-        try:
-            nickname = g.con.append_user(nickname, email)
-
-        except ValueError:
-            return MISSING_USER_DATA
+        nickname = g.con.append_user(nickname, email)
+        if not nickname:
+            return DB_PROBLEM_RESP
 
         # CREATE RESPONSE AND RENDER
-        return Response(status=201,
-            headers={"Location": api.url_for(User, nickname=nickname)})
+        return Response(status=201, headers={"Location": api.url_for(User, nickname=nickname)})
+
 
 class User(Resource):
     """
@@ -651,7 +649,7 @@ class Exercises(Resource):
         :return: flask.Response of the status code.
         """
         # Check if json
-        if JSON != request.headers.get(CONTENT_TYPE, ''):
+        if JSON != request.headers.get(CONTENT_TYPE):
             return NOT_JSON_RESP
         request_body = request.get_json(force=True)
 

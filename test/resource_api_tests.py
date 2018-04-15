@@ -175,7 +175,7 @@ GOT_EXERCISE = {
                     },
                     'list-moves': {
                         'type': 'string',
-                        'description': 'PGN code movelist of the exercise solution',
+                        'description': 'comma-separated SAN entries movelist of the exercise solution',
                         'title': 'List of moves'
                     }
                 }
@@ -342,7 +342,7 @@ GOT_USERS = {
          "href": "/api/users/"
       },
       "profile": {
-         "href":"/profiles/user-profile/"
+         "href": "/profiles/user-profile/"
       },
       "chessapi:users-all": {
          "href": "/api/users/",
@@ -937,18 +937,6 @@ class UsersTestCase(ResourcesApiTestCase):
                                   + '?author_email=animal%40mymail.com')
         self._assertErrorMessage(resp, 401, 'Wrong authentication')
 
-
-class UsersTestCase (ResourcesApiTestCase):
-    url = "/api/users/"
-
-    def test_url(self):
-        """Checks that the URL points to the right resource"""
-        print('('+self.test_url.__name__+')', self.test_url.__doc__)
-        with resources.app.test_request_context(self.url):
-            rule = flask.request.url_rule
-            view_point = resources.app.view_functions[rule.endpoint].view_class
-            self.assertEqual(view_point, resources.Users)
-
     def test_get_users(self):
         """Checks if users GET request works correctly"""
         print('(' + self.test_get_users.__name__ + ')', self.test_get_users.__doc__)
@@ -982,17 +970,18 @@ class UsersTestCase (ResourcesApiTestCase):
         resp = self.client.post(resources.api.url_for(resources.Users),
                                 headers={CONTENT_TYPE: resources.JSON},
                                 data=json.dumps(request_data))
-        self._assertErrorMessage(resp, 400, 'Wrong request format')
+        self._assertErrorMessage(resp, 400, 'Missing fields')
 
-    def test_add_user_existing_title(self):
+    def test_add_user_existing_nickname(self):
         """Check if error code is correct when an existing user nickname is provided"""
-        print('(' + self.test_add_user_existing_title.__name__ + ')', self.test_add_user_existing_title.__doc__)
+        print('(' + self.test_add_user_existing_nickname.__name__ + ')', self.test_add_user_existing_nickname.__doc__)
         request_data = ADD_USER_VALID_DATA.copy()
         request_data['nickname'] = 'Mystery'
         resp = self.client.post(resources.api.url_for(resources.Users),
                                 headers={CONTENT_TYPE: resources.JSON},
                                 data=json.dumps(request_data))
-        self._assertErrorMessage(resp, 409, 'Reserved nickname')
+        self._assertErrorMessage(resp, 409, 'Nickname already exists')
+
 
 if __name__ == '__main__':
     print('Start running tests')
