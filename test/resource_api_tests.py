@@ -392,7 +392,26 @@ class ExercisesTestCase(ResourcesApiTestCase):
         self._assertErrorMessage(resp, 400, 'Wrong request format')
 
 
-# class UsersTestCase (ResourcesApiTestCase):
+class UsersTestCase (ResourcesApiTestCase):
+    url = "/api/users/"
+
+    def test_url(self):
+        """Checks that the URL points to the right resource"""
+        print('('+self.test_url.__name__+')', self.test_url.__doc__)
+        with resources.app.test_request_context(self.url):
+            rule = flask.request.url_rule
+            view_point = resources.app.view_functions[rule.endpoint].view_class
+            self.assertEqual(view_point, resources.Users)
+
+    def test_get_users(self):
+        """Checks if exercises GET request works correctly"""
+        print('(' + self.test_get_users.__name__ + ')', self.test_get_users.__doc__)
+        resp = self.client.get(flask.url_for('users'))
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.headers.get(CONTENT_TYPE), resources.MASON + ';' + resources.USER_PROFILE)
+        data = json.loads(resp.data.decode('utf-8'))
+        self.assertDictEqual(data, GOT_USERS)
+
 
 if __name__ == '__main__':
     print('Start running tests')
