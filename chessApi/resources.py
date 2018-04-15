@@ -334,10 +334,14 @@ class Users(Resource):
             return MISSING_USER_DATA
 
         # Conflict if user already exist
-        if g.con.contains_user(nickname):
+        if g.con.contains_user_nickname(nickname):
             return create_error_response(409, "Reserved nickname",
                                          "There is already a user with same "
                                          "nickname:%s." % nickname)
+        if g.con.contains_user_email(email):
+            return create_error_response(409, "Reserved email",
+                                         "There is already a user with same "
+                                         "email:%s." % email)
 
         user = {"nickname": nickname,
                 "email": email
