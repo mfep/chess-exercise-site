@@ -232,7 +232,7 @@ ADD_USER_VALID_DATA = {
   'nickname': 'Harri',
   'email': 'Harri@gmail.com'
 }
-ADDED_USER_LOCATION = 'http://localhost:5000/api/user/harri/'
+ADDED_USER_LOCATION = 'http://localhost:5000/api/users/Harri/'
 
 resources.app.config['Testing'] = True
 resources.app.config['SERVER_NAME'] = 'localhost:5000'
@@ -241,6 +241,8 @@ resources.app.config.update({'Engine': ENGINE})
 initial_users = 2
 
 # TODO document code
+
+
 class ResourcesApiTestCase(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -404,7 +406,7 @@ class UsersTestCase (ResourcesApiTestCase):
             self.assertEqual(view_point, resources.Users)
 
     def test_get_users(self):
-        """Checks if exercises GET request works correctly"""
+        """Checks if users GET request works correctly"""
         print('(' + self.test_get_users.__name__ + ')', self.test_get_users.__doc__)
         resp = self.client.get(flask.url_for('users'))
         self.assertEqual(resp.status_code, 200)
@@ -412,6 +414,41 @@ class UsersTestCase (ResourcesApiTestCase):
         data = json.loads(resp.data.decode('utf-8'))
         self.assertDictEqual(data, GOT_USERS)
 
+    def test_add_user_valid(self):
+        """Check if valid user data can be added"""
+        print('(' + self.test_add_user_valid.__name__ + ')', self.test_add_user_valid.__doc__)
+        resp = self.client.post(resources.api.url_for(resources.Users),
+                                headers={CONTENT_TYPE: resources.JSON},
+                                data=json.dumps(ADD_USER_VALID_DATA))
+        self.assertEqual(resp.status_code, 201)
+        self.assertEqual(resp.headers.get('Location'), ADDED_USER_LOCATION)
+
+    def test_add_user_not_json(self):
+        """Check if error code is correct when Content-Type is not set"""
+        print('(' + self.test_add_user_not_json.__name__ + ')', self.test_add_user_not_json.__doc__)
+        resp = self.client.post(resources.api.url_for(resources.Users),
+                                data=json.dumps(ADD_USER_VALID_DATA))
+        self._assertErrorMessage(resp, 415, 'Wrong request format')
+
+    def test_add_user_missing_fields(self):
+        """Check if error code is correct when not all fields are provided in request"""
+        print('(' + self.test_add_user_missing_fields.__name__ + ')', self.test_add_user_missing_fields.__doc__)
+        request_data = ADD_USER_VALID_DATA.copy()
+        request_data.pop('nickname')
+        resp = self.client.post(resources.api.url_for(resources.Users),
+                                headers={CONTENT_TYPE: resources.JSON},
+                                data=json.dumps(request_data))
+        self._assertErrorMessage(resp, 400, 'Wrong request format')
+
+    def test_add_user_existing_title(self):
+        """Check if error code is correct when an existing user nickname is provided"""
+        print('(' + self.test_add_user_existing_title.__name__ + ')', self.test_add_user_existing_title.__doc__)
+        request_data = ADD_USER_VALID_DATA.copy()
+        request_data['nickname'] = 'Mystery'
+        resp = self.client.post(resources.api.url_for(resources.Users),
+                                headers={CONTENT_TYPE: resources.JSON},
+                                data=json.dumps(request_data))
+        self._assertErrorMessage(resp, 409, 'Reserved nickname')
 
 if __name__ == '__main__':
     print('Start running tests')
