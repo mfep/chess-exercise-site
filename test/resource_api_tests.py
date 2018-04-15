@@ -122,10 +122,123 @@ ADD_EXERCISE_VALID_DATA = {
 }
 ADDED_EXERCISE_LOCATION = 'http://localhost:5000/api/exercises/4/'
 
+GOT_USERS = {
+   "@namespaces": {
+      "chessapi": {
+         "name": "/api/link-relations/"
+      }
+   },
+   "@controls": {
+      "self": {
+         "href": "/api/users/"
+      },
+      "profile": {
+         "href":"/profiles/user-profile/"
+      },
+      "chessapi:users-all": {
+         "href": "/api/users/",
+         "method": "GET"
+      },
+      "chessapi:add-user": {
+         "title": "Add a new user",
+         "href": "/api/users/",
+         "encoding": "json",
+         "method": "POST",
+         "schema": {
+            "type": "object",
+            "properties": {
+               "nickname": {
+                  "title": "Nickname",
+                  "description": " Unique id string of the user",
+                  "type": "string"
+               },
+               "email": {
+                  "title": "Email address",
+                  "description": "email address of the user.",
+                  "type": "string"
+               }
+            },
+            "required": [
+               "nickname",
+               "email"
+            ]
+         }
+      }
+   },
+   "items": [
+      {
+         "nickname": "Mystery",
+         "registrationdate": 1362015937,
+         "@controls": {
+            "self": {
+               "href": "/api/users/Mystery/"
+            },
+            "profile": {
+               "href": "/profiles/user-profile/"
+            }
+         }
+      },
+      {
+         "nickname": "AxelW",
+         "registrationdate": 1357724086,
+         "@controls": {
+            "self": {
+               "href": "/api/users/AxelW/"
+            },
+            "profile": {
+               "href": "/profiles/user-profile/"
+            }
+         }
+      },
+      {
+         "nickname": "LinuxPenguin",
+         "registrationdate": 1362012937,
+         "@controls": {
+            "self": {
+               "href": "/api/users/LinuxPenguin/"
+            },
+            "profile": {
+               "href": "/profiles/user-profile/"
+            }
+         }
+      },
+      {
+         "nickname": "Koodari",
+         "registrationdate": 1389260086,
+         "@controls": {
+            "self": {
+               "href": "/api/users/Koodari/"
+            },
+            "profile": {
+               "href": "/profiles/user-profile/"
+            }
+         }
+      },
+      {
+         "nickname": "HockeyFan",
+         "registrationdate": 1394357686,
+         "@controls": {
+            "self": {
+               "href": "/api/users/HockeyFan/"
+            },
+            "profile": {
+               "href": "/profiles/user-profile/"
+            }
+         }
+      }
+   ]
+}
+ADD_USER_VALID_DATA = {
+  'nickname': 'Harri',
+  'email': 'Harri@gmail.com'
+}
+ADDED_USER_LOCATION = 'http://localhost:5000/api/user/harri/'
+
 resources.app.config['Testing'] = True
 resources.app.config['SERVER_NAME'] = 'localhost:5000'
 resources.app.config.update({'Engine': ENGINE})
-
+# Other database parameters.
+initial_users = 2
 
 # TODO document code
 class ResourcesApiTestCase(unittest.TestCase):
@@ -224,7 +337,7 @@ class ExercisesTestCase(ResourcesApiTestCase):
         print('(' + self.test_add_exercise_not_json.__name__ + ')', self.test_add_exercise_not_json.__doc__)
         resp = self.client.post(resources.api.url_for(resources.Exercises),
                                 data=json.dumps(ADD_EXERCISE_VALID_DATA))
-        self._assertErrorMessage(resp, 400, 'Wrong request format')
+        self._assertErrorMessage(resp, 415, 'Wrong request format')
 
     def test_add_exercise_missing_fields(self):
         """Check if error code is correct when not all fields are provided in request"""
@@ -244,7 +357,7 @@ class ExercisesTestCase(ResourcesApiTestCase):
         resp = self.client.post(resources.api.url_for(resources.Exercises),
                                 headers={CONTENT_TYPE: resources.JSON},
                                 data=json.dumps(request_data))
-        self._assertErrorMessage(resp, 400, 'Existing exercise headline')
+        self._assertErrorMessage(resp, 409, 'Existing exercise headline')
 
     def test_add_exercise_not_existing_user(self):
         """Check if error code is correct when a non-existing username is provided"""
@@ -278,6 +391,8 @@ class ExercisesTestCase(ResourcesApiTestCase):
                                 data=json.dumps(request_data))
         self._assertErrorMessage(resp, 400, 'Wrong request format')
 
+
+# class UsersTestCase (ResourcesApiTestCase):
 
 if __name__ == '__main__':
     print('Start running tests')
