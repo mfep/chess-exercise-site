@@ -156,6 +156,18 @@ class UserDbApiTestCase(unittest.TestCase):
         nickname = self.connection.append_user(USER1_NICKNAME, NEW_USER_MAIL)
         self.assertIsNone(nickname)
 
+    def test_modify_user_valid(self):
+        """Test that an user can be modified"""
+        print('(' + self.test_modify_user_valid.__name__ + ')', self.test_modify_user_valid.__doc__)
+        self.assertTrue(self.connection.modify_user(USER1_NICKNAME, NEW_USER_NICKNAME, NEW_USER_MAIL))
+        user = self.connection.get_user(NEW_USER_NICKNAME)
+        self.assertDictContainsSubset(NEW_USER, user)
+
+    def test_modify_user_existing(self):
+        """Test if changing an user's nickname to an existing one yields error"""
+        print('(' + self.test_modify_user_existing.__name__ + ')', self.test_modify_user_existing.__doc__)
+        self.assertFalse(self.connection.modify_user(USER1_NICKNAME, USER2_NICKNAME, NEW_USER_MAIL))
+
 
 if __name__ == '__main__':
     print('Start running user tests')

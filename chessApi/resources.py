@@ -13,12 +13,13 @@ from chessApi import database
 APIARY_PROJECT = 'https://communitychess.docs.apiary.io'
 APIARY_PROFILES = APIARY_PROJECT + '/#reference/profiles/'
 APIARY_RELATIONS = APIARY_PROJECT + '/#reference/link-relations/'
+CONTENT_TYPE = 'Content-Type'
 MASON = 'application/vnd.mason+json'
 JSON = 'application/json'
 EXERCISE_PROFILE = '/profiles/exercise-profile/'
 ERROR_PROFILE = '/profiles/error-profile/'
 LINK_RELATIONS = '/api/link-relations/'
-USER_PROFILE = "/profiles/user-profile/"
+USER_PROFILE = '/profiles/user-profile/'
 SOLVER_SOLUTION = 'SOLUTION'
 SOLVER_PARTIAL = 'PARTIAL'
 SOLVER_WRONG = 'WRONG'
@@ -55,7 +56,7 @@ class ChessApiObject(dict):
         self.add_control('self', self_href)
         self.add_control('profile', profile)
 
-    def add_control(self, name, href, method = None):
+    def add_control(self, name, href, method=None):
         """
         Add another MASON @control object to the dictionary.
         :param name: Name of the control.
@@ -311,23 +312,12 @@ def _check_free_user_nickname(nickname):
     user_db = g.con.get_users()
     return not any(map(lambda ex: ex['nickname'] == nickname, user_db))
 
-def _check_free_user_email(email):
-    """
-    Checks if the given exercise headline exists already in the database.
-    :param email: The headline string to be checked.
-    :return: `True` if the given email does not exist in the database.
-    """
-    user_db = g.con.get_users()
-    return not any(map(lambda ex: ex['email'] == email, user_db))
 
-
-BAD_JSON_RESP = create_error_response(400, 'Wrong request format', JSON + ' is required')
-EXISTING_TITLE_RESP = create_error_response(400, 'Existing exercise headline',
+NOT_JSON_RESP = create_error_response(415, 'Wrong request format', JSON + ' is required')
+EXISTING_TITLE_RESP = create_error_response(409, 'Existing exercise headline',
                                             'The provided headline already exists in the database')
-EXISTING_NICKNAME_RESP = create_error_response(400, 'Existing nickname headline',
-                                            'The provided nickname already exists in the database.')
-MISSING_USER_RESP = create_error_response(404, 'User not found',
-                                          'The provided nickname does not exist in the database.')
+EXISTING_NICKNAME_RESP = create_error_response(409, 'Existing nickname',
+                                               'The provided nickname already exists in the database.')
 WRONG_AUTH_RESP = create_error_response(401, 'Wrong authentication',
                                         'The provided email address does not match the one in the database.')
 INVALID_CHESS_DATA_RESP = create_error_response(400,
@@ -344,12 +334,12 @@ def missing_exercise_response(exerciseid):
     return create_error_response(404, 'Exercise does not exist', 'There is no exercise with id ' + exerciseid)
 
 
+def missing_user_response(nickname):
+    return create_error_response(404, 'User does not exist', 'There is no user with nickname ' + nickname)
+
+
 def existing_nickname_response(nickname):
-    return create_error_response(404, 'Nickname exist', 'Choose another nickname' + nickname)
-
-
-def existing_email_response(email):
-    return create_error_response(400, 'Email exist', 'Choose another email' + email)
+    return create_error_response(409, 'Nickname exist', 'Choose another nickname' + nickname)
 
 
 @app.errorhandler(400)
@@ -406,102 +396,106 @@ class Users(Resource):
 
 
 class User(Resource):
-    # TODO antonio
-    # - code
-    # - docstrings
-    # - tests
-    # - check if the error responses are present in apiary
     """
-        User Resource.
+    User Resource.
     """
-
     def get(self, nickname):
         """
-           Get basic information of a user:
-
-           INPUT PARAMETER:
-          : param str nickname: Nickname of the required user.
-
-           OUTPUT:
-            * Return 200 if the nickname exists.
-            * Return 404 if the nickname is not stored in the system.
-
-           RESPONSE ENTITY BODY:
-
-           * Media type : application/vnd.mason+json
-           * Profile : application/vnd.mason+json
-
-           Link relations used: self, collection, user-public.
-
-           Semantic descriptors used: nickname and registrationdate
+        Implementation of the response to a GET request to the User resource.
+        HTTP status codes:
+            200 - the user data is retrieved correctly
+            404 - the user with the given nickname does not exist
+            500 - database error
+        :param nickname: the nickname of the user
+        :return: flask.Response of the status code and response body.
         """
         user_db = g.con.get_user(nickname)
         if not user_db:
-            return create_error_response(404, 'Non existing resource',
-                                         'There is no user with this nickname ' + nickname)
+            return missing_user_response(nickname)
 
         regdate = user_db['registrationdate']
         nickname = user_db['nickname']
 
-        envelope = ChessApiObject(api.url_for(User, nickname=nickname), USER_PROFILE, registrationdate=regdate, nickname=nickname)
+        envelope = ChessApiObject(api.url_for(User, nickname=nickname), USER_PROFILE,
+                                  registrationdate=regdate, nickname=nickname)
         envelope.add_control("profile", USER_PROFILE)
         envelope.add_control("collection", href=api.url_for(Users))
         envelope.add_control("self", href=api.url_for(User, nickname=nickname))
         envelope.add_control("chessapi:user-submission", href=api.url_for(Submissions, nickname=nickname))
         envelope.add_control("chessapi:all-exercises", href=api.url_for(Exercises))
         envelope.add_control("chessapi:delete", api.url_for(User, nickname=nickname), "DELETE")
-        string_data = json.dumps(envelope)
-        return Response(string_data, 200, mimetype=MASON + ';' + USER_PROFILE)
+        return Response(json.dumps(envelope), 200, mimetype=MASON + ';' + USER_PROFILE)
 
     def put(self, nickname):
-
-
+        """
+        Implementation of modifying an user via a PUT request.
+        HTTP status codes:
+            204 - the user has been correctly modified
+            400 - some required fields are missing from the request body
+            401 - the provided email address of the user does not match the one in the database
+            404 - the user with the given nickname does not exist
+            409 - the new nickname is already taken
+            415 - the Content-Type of the request is not JSON
+            500 - database error
+        :param nickname: the nickname of the user
+        :return: flask.Response of the status code and response body.
+        """
         # Check if the requested data is valid JSON
-        if JSON != request.headers.get('Content-Type'):
-            return BAD_JSON_RESP
+        if JSON != request.headers.get(CONTENT_TYPE):
+            return NOT_JSON_RESP
         request_body = request.get_json(force=True)
 
         # extract fields
         try:
-            nickname = request_body['nickname']
-            email = request_body['email']
-            former_ermail = request_body['former_email']
+            new_nickname = request_body['nickname']
+            new_email = request_body['email']
+            former_email = request_body['former_email']
         except KeyError:
             return create_error_response(400, 'Missing fields',
                                          'Be sure you to fill the nickname field,'
                                          'email and former email field.')
+
         # Check if the user exists
         if not g.con.get_user(nickname):
-            return existing_nickname_response(nickname)
+            return missing_user_response(nickname)
 
         # check if the email addresses match
-        if not _check_free_user_email(email):
-            return existing_email_response(email)
+        if not _check_author_email(nickname, former_email):
+            return WRONG_AUTH_RESP
 
         # check if new nickname exists already
-        if not _check_free_user_nickname(nickname):
-               return EXISTING_NICKNAME_RESP
+        if not _check_free_user_nickname(new_nickname):
+            return EXISTING_NICKNAME_RESP
 
-        if nickname != g.con.modify_user(nickname, email):
+        if not g.con.modify_user(nickname, new_nickname, new_email):
             return DB_PROBLEM_RESP
         return Response(status=204)
 
     def delete(self, nickname):
         """
-               Delete a user in the system.
+        Implementation of deleting an user via a DELETE HTTP request.
+        The email address is required for authentication purposes as an url query.
+        HTTP status codes:
+            204 - the user has been successfully deleted
+            401 - the provided email address does not match the one in the database
+            404 - the exercise with the given id does not exist
+            500 - database error
+        :param nickname: the nickname of the user to be deleted
+        :return: flask.Response of the status code and response body.
+        """
+        # Check if the user exist
+        if not g.con.get_user(nickname):
+            return missing_user_response(nickname)
 
-              : param str nickname: Nickname of the required user.
+        # Check if the queried email matches the one in the database
+        query_email = request.args.get('author_email')
+        if not _check_author_email(nickname, query_email):
+            return WRONG_AUTH_RESP
 
-               RESPONSE STATUS CODE:
-                * If the user is deleted returns 204.
-                * If the nickname does not exist return 404
-               """
-        if g.con.delete_user(nickname):
-            return "", 204
-        else:
-            return create_error_response(404, "Unknown nickname",
-                                         "There is no a user with nickname %s" % nickname
-                                         )
+        if not g.con.delete_user(nickname):
+            return DB_PROBLEM_RESP
+        return Response(status=204)
+
 
 class Submissions(Resource):
     """
@@ -521,7 +515,7 @@ class Submissions(Resource):
         """
         # check if user exists
         if not g.con.get_user(nickname):
-            return MISSING_USER_RESP
+            return missing_user_response(nickname)
 
         # create and add controls to the envelope
         envelope = ChessApiObject(api.url_for(Submissions, nickname=nickname), EXERCISE_PROFILE)
@@ -574,8 +568,8 @@ class Exercises(Resource):
         :return: flask.Response of the status code.
         """
         # Check if json
-        if JSON != request.headers.get('Content-Type', ''):
-            return BAD_JSON_RESP
+        if JSON != request.headers.get(CONTENT_TYPE, ''):
+            return NOT_JSON_RESP
         request_body = request.get_json(force=True)
 
         # check if has every required field
@@ -599,7 +593,7 @@ class Exercises(Resource):
 
         # check if nickname exists
         if not _check_existing_nickname(author):
-            return MISSING_USER_RESP
+            return missing_user_response(author)
 
         # validate author
         if not _check_author_email(author, author_email):
@@ -672,8 +666,8 @@ class Exercise(Resource):
             return missing_exercise_response(exerciseid)
 
         # check if the request data is valid JSON
-        if JSON != request.headers.get('Content-Type'):
-            return BAD_JSON_RESP
+        if JSON != request.headers.get(CONTENT_TYPE):
+            return NOT_JSON_RESP
         request_body = request.get_json(force=True)
 
         # extract fields
