@@ -211,7 +211,7 @@ class Connection(object):
             * ``description``: description of the exercise
             * ``sub_date``: the UNIX timestamp of the exercise submission
             * ``initial_state``: the FEN code of the initial state of the exercise
-            * ``list_moves``: PGN string of the exercise solution
+            * ``list_moves``: string of the exercise solution
         """
         return {
             'exercise_id': row['exercise_id'],
@@ -559,3 +559,43 @@ class Connection(object):
 
         else:
             return None
+
+    def get_user_nickname(self, nickname):
+        query = 'SELECT user_id FROM users WHERE nickname = ? '
+        self.set_foreign_keys_support()
+        self.con.row_factory = sqlite3.Row
+        cur = self.con.cursor()
+        pvalue = (nickname,)
+        cur.execute(query, pvalue)
+        row = cur.fetchone()
+        if row is None:
+            return None
+        # Build the return object
+        else:
+            return row[0]
+
+    def contains_user_nickname(self, nickname):
+        """
+        :return: True if the user is in the database. False otherwise
+        """
+        return self.get_user_nickname(nickname) is not None
+
+    def get_user_email(self, email):
+        query = 'SELECT user_id FROM users WHERE email = ? '
+        self.set_foreign_keys_support()
+        self.con.row_factory = sqlite3.Row
+        cur = self.con.cursor()
+        pvalue = (email,)
+        cur.execute(query, pvalue)
+        row = cur.fetchone()
+        if row is None:
+            return None
+        # Build the return object
+        else:
+            return row[0]
+
+    def contains_user_email(self, email):
+        """
+        :return: True if the user is in the database. False otherwise
+        """
+        return self.get_user_email(email) is not None

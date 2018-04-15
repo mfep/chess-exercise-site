@@ -98,7 +98,7 @@ class ChessApiObject(dict):
                     },
                     'list-moves': {
                         'title': 'List of moves',
-                        'description': 'PGN code movelist of the exercise solution',
+                        'description': 'comma-separated SAN entries movelist of the exercise solution',
                         'type': 'string'
                     },
                     'author': {
@@ -145,7 +145,7 @@ class ChessApiObject(dict):
                     },
                     'list-moves': {
                         'title': 'List of moves',
-                        'description': 'PGN code movelist of the exercise solution',
+                        'description': 'comma-separated SAN entries movelist of the exercise solution',
                         'type': 'string'
                     },
                     'author-email': {
@@ -185,6 +185,29 @@ class ChessApiObject(dict):
         """
         self.add_control('chessapi:users-all', api.url_for(Users), 'GET')
 
+    def add_add_users_control(self):
+        self['@controls']['chessapi:add-user'] = {
+            'title': 'Add a new user',
+            'href': api.url_for(Users),
+            'encoding': 'json',
+            'method': 'POST',
+            'schema': {
+                'type': 'object',
+                'properties': {
+                    'nickname': {
+                        'title': 'Nickname',
+                        'description': ' Unique id string of the user',
+                        'type': 'string'
+                    },
+                    'email': {
+                        'title': 'Email address',
+                        'description': 'email address of the user.',
+                        'type': 'string'
+                    }
+                },
+                'required': ['nickname', 'email']
+            }
+        }
 
 def _check_existing_nickname(nickname):
     """
@@ -388,12 +411,72 @@ class Users(Resource):
     # - docstrings
     # - tests
     # - check if the error responses are present in apiary
+    """
+    Gets a list of all the users in the database.
+    It retures 200.
+    """
+
     def get(self):
-        pass
+        # get the list of users from the database
+        users_db = g.con.get_users()
+
+        # create envelope and add controls to it
+        envelope = ChessApiObject(api.url_for(Users), USER_PROFILE)
+        envelope.add_users_all_control()
+        envelope.add_add_users_control()
+
+        items = envelope["items"] = []
+
+        for user in users_db:
+            item = ChessApiObject(
+                api.url_for(User, nickname=user["nickname"]),
+                USER_PROFILE,
+                False,
+                nickname=user["nickname"],
+                registrationdate=user["registrationdate"]
+            )
+            items.append(item)
+
+        return Response(json.dumps(envelope), 200, mimetype=MASON+";" + USER_PROFILE)
 
     def post(self):
-        pass
+        """
+        Adds a new user in the database.
+        """
 
+        if JSON != request.headers.get("Content-Type", ""):
+            return BAD_JSON_RESP
+        request_body = request.get_json(force=True)
+
+        # pick up nickname to check for conflicts
+        try:
+            nickname = request_body["nickname"]
+            email = request_body["email"]
+        except KeyError:
+            return MISSING_USER_DATA
+
+        # Conflict if user already exist
+        if g.con.contains_user_nickname(nickname):
+            return create_error_response(409, "Reserved nickname",
+                                         "There is already a user with same "
+                                         "nickname:%s." % nickname)
+        if g.con.contains_user_email(email):
+            return create_error_response(409, "Reserved email",
+                                         "There is already a user with same "
+                                         "email:%s." % email)
+
+        user = {"nickname": nickname,
+                "email": email
+                }
+        try:
+            nickname = g.con.append_user(nickname, email)
+
+        except ValueError:
+            return MISSING_USER_DATA
+
+        # CREATE RESPONSE AND RENDER
+        return Response(status=201,
+            headers={"Location": api.url_for(User, nickname=nickname)})
 
 class User(Resource):
     """
