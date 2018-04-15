@@ -364,7 +364,8 @@ def missing_user_response(nickname):
 
 
 def existing_nickname_response(nickname):
-    return create_error_response(409, 'Nickname already exists', 'Choose another nickname' + nickname)
+    return create_error_response(409, 'Nickname already exists',
+                                 'There is already a user with same nickname: ' + nickname)
 
 
 @app.errorhandler(400)
@@ -640,11 +641,12 @@ class Exercises(Resource):
         Implementation of the addition of a new exercise to the database via POST HTTP request.
         HTTP status codes:
             201 - the new exercise has been created correctly.
-            400 - the Content-Type of the request is not JSON
             400 - some required fields are missing from the request body
-            400 - the exercise title is already taken
+            400 - invalid chess data
             401 - the email address of the author does not match the email address in the database
             404 - the user with the given nickname does not exist
+            409 - the exercise title is already taken
+            415 - the Content-Type of the request is not JSON
             500 - database error
         :return: flask.Response of the status code.
         """
@@ -733,11 +735,12 @@ class Exercise(Resource):
         Implementation of modifying an exercise via a PUT request.
         HTTP status codes:
             204 - the exercise has been correctly modified
-            400 - the Content-Type of the request is not JSON
             400 - some required fields are missing from the request body
-            400 - the new exercise title is already taken
+            400 - invalid chess data
             401 - the provided email address of the user does not match the one in the database
             404 - the exercise with the given id does not exist
+            409 - the new exercise title is already taken
+            415 - the Content-Type of the request is not JSON
             500 - database error
         :param exerciseid: the identifier number of the exercise
         :return: flask.Response of the status code and response body.
