@@ -92,7 +92,7 @@ class UserDbApiTestCase(unittest.TestCase):
         self.assertDictContainsSubset(user, USER2)
 
     def test_get_user_noexistingid(self):
-        """Test get_user with  msg-200 (no-existing)"""
+        """Test get_user with non-existing id"""
         print('(' + self.test_get_user_noexistingid.__name__ + ')',
               self.test_get_user_noexistingid.__doc__)
         user = self.connection.get_user(USER_WRONG_NICKNAME)
