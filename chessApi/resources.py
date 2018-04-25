@@ -239,13 +239,6 @@ def _check_chess_data(initial_state, list_moves, checkmate_needed=True):
     :param checkmate_needed: Wheter it's required to have a checkmate at the end of the moves or not.
     :return: `True` if the provided data is valid chess-wise.
     """
-    # TODO weiping : update documentation. we're not using PGN anymore, but a simpler notation
-    # which consists of comma-separated SAN entries
-    # to be updated:
-    #   - confluence
-    #   - apairy
-    #   - response dictioanries
-    #   - testing dictionaries
     try:
         # check if initial state is valid
         board = chess.Board(initial_state)
@@ -253,7 +246,7 @@ def _check_chess_data(initial_state, list_moves, checkmate_needed=True):
         moves = list_moves.split(',')
         for san_move in moves:
             board.push_san(san_move)
-    except ValueError:
+    except (ValueError, AttributeError):
         return False
     # valid exercise ends with checkmate
     return not checkmate_needed or board.is_checkmate()

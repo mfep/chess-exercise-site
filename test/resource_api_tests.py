@@ -771,24 +771,24 @@ class ExercisesTestCase(ResourcesApiTestCase):
         self.assertEqual(200, resp.status_code)
         self.assertDictEqual(GOT_SOLVER, json.loads(resp.data.decode('utf-8')))
 
-    def get_solver_non_existing(self):
+    def test_get_solver_non_existing(self):
         """Checks error message when trying to access a non-existing exercise's solver"""
-        print('(' + self.get_solver_non_existing.__name__ + ')', self.get_solver_non_existing.__doc__)
+        print('(' + self.test_get_solver_non_existing.__name__ + ')', self.test_get_solver_non_existing.__doc__)
         exercise_id = 100
         resp = self.client.get(resources.api.url_for(resources.Solver, exerciseid=exercise_id) +
                                '?solution='+urllib.parse.quote_plus(FOOLS_MATE_MOVES))
         self._assertErrorMessage(resp, 404, 'Exercise does not exist')
 
-    def get_solver_no_query(self):
+    def test_get_solver_no_query(self):
         """Checks error message when no solution query is provided"""
-        print('(' + self.get_solver_no_query.__name__ + ')', self.get_solver_no_query.__doc__)
+        print('(' + self.test_get_solver_no_query.__name__ + ')', self.test_get_solver_no_query.__doc__)
         exercise_id = 1
         resp = self.client.get(resources.api.url_for(resources.Solver, exerciseid=exercise_id))
         self._assertErrorMessage(resp, 400, 'Bad query')
 
-    def get_solver_nonsense_query(self):
+    def test_get_solver_nonsense_query(self):
         """Checks error message when the provided query string is nonsense"""
-        print('(' + self.get_solver_nonsense_query.__name__ + ')', self.get_solver_nonsense_query.__doc__)
+        print('(' + self.test_get_solver_nonsense_query.__name__ + ')', self.test_get_solver_nonsense_query.__doc__)
         exercise_id = 1
         resp = self.client.get(resources.api.url_for(resources.Solver, exerciseid=exercise_id) +
                                '?solution='+urllib.parse.quote_plus("dksajakldjs"))
