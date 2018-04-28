@@ -3,8 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <title>Community Chess Site</title>
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+    <script type="text/javascript" src="js/chess_board.js"></script>
+    <script type="text/javascript" src="js/solver.js"></script>
 </head>
 <body>
     <h1>Welcome to the Community Chess Site!</h1>
+    <div style="border:1px solid black">
+        <h2>Exercise info</h2>
+        <ul>
+            <li>Title: <span id="ex-title">???</span></li>
+            <li>About: <span id="ex-about">???</span></li>
+            <li>Author: <span id="ex-author">???</span></li>
+        </ul>
+
+    </div>
+    <div>
+        <svg id="chess-board" xmlns="http://www.w3.org/2000/svg"></svg>
+    </div>
+    <em>Message: <span id="message"></span></em>
 </body>
 </html>
