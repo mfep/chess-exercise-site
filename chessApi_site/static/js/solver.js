@@ -16,6 +16,9 @@ function getUrlParameter(sParam) {
 }
 
 function getExercise(apiurl) {
+    var chessBoard = new ChessBoard();
+    chessBoard.drawBoard();
+
     return $.ajax({
         url: apiurl,
         dataType: DEFAULT_DATATYPE
@@ -24,6 +27,10 @@ function getExercise(apiurl) {
         $("#ex-title").text(data.headline);
         $("#ex-about").text(data.about);
         $("#ex-author").text(data.author);
+
+        var chessGame = new Chess(data["initial-state"]);
+        chessBoard.drawPieces(chessGame);
+        //chessBoard.clearPieces();
     }).fail(function (jqXHR, textStatus, errorThrown) {
         $("#message").text("Error receiving exercise data: " + errorThrown);
     })
