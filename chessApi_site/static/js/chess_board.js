@@ -5,15 +5,27 @@ var ChessBoard = function() {
 
     var tiles = [];
     var pieces = [];
+    var svgnode = document.getElementById("chess-board");
+    var boardClickCallback = function(san) { console.log(san) };
 
+    function createRectGroupClicked (x, y) {
+        return function (mouseEv) {
+            var target = mouseEv.target;
+            while (target.getAttribute("class") !== "rectGroup") {
+                target = target.parentElement;
+            }
+            var san = String.fromCharCode(97 + x) + (8 - y).toString();
+            boardClickCallback(san);
+        }
+    }
 
     this.drawBoard = function () {
-        var svgnode = document.getElementById("chess-board");
         svgnode.setAttributeNS(null, "width", (8 * TILE).toString());
         svgnode.setAttributeNS(null, "height", (8 * TILE).toString());
 
         function addRect(x, y, w, h, color) {
             var groupElem = document.createElementNS(xmlns, "g");
+            groupElem.setAttribute("class", "rectGroup");
             var rectElem = document.createElementNS(xmlns, "rect");
             groupElem.setAttributeNS(null, "transform", "translate(" + x + "," + y + ")");
             rectElem.setAttributeNS(null, "width", w);
@@ -29,8 +41,9 @@ var ChessBoard = function() {
             var row = [];
             for (var x = 0; x < 8; x++) {
                 var color = (9 * y + x) % 2 ? "#af6336" : "#fcfa9f";
-                var rect = addRect(x * TILE, y * TILE, TILE, TILE, color);
-                row.push(rect);
+                var rectGroup = addRect(x * TILE, y * TILE, TILE, TILE, color);
+                rectGroup.onclick = createRectGroupClicked(x, y);
+                row.push(rectGroup);
             }
             tiles.push(row);
         }
@@ -45,6 +58,7 @@ var ChessBoard = function() {
             return pieceElem;
         }
 
+        this.clearPieces();
         var boardAscii = chessGame.ascii();
         boardAscii = boardAscii.replace(/ /g, '');
         var lines = boardAscii.split("\n");
