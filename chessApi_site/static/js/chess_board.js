@@ -6,7 +6,9 @@ var ChessBoard = function() {
     var tiles = [];
     var pieces = [];
     var svgnode = document.getElementById("chess-board");
-    var boardClickCallback = function(san) { console.log(san) };
+    var fromSan = null;
+    var highlighter = null;
+    var boardClickCallback = function(fromsan, tosan) { console.log(fromsan, tosan) };
 
     function createRectGroupClicked (x, y) {
         return function (mouseEv) {
@@ -15,7 +17,15 @@ var ChessBoard = function() {
                 target = target.parentElement;
             }
             var san = String.fromCharCode(97 + x) + (8 - y).toString();
-            boardClickCallback(san);
+            if (fromSan) {
+                highlighter.setAttributeNS(null, "visibility", "hidden");
+                boardClickCallback(fromSan, san);
+                fromSan = null;
+            } else {
+                highlighter.setAttributeNS(null, "visibility", "visible");
+                tiles[y][x].appendChild(highlighter);
+                fromSan = san;
+            }
         }
     }
 
@@ -47,6 +57,15 @@ var ChessBoard = function() {
             }
             tiles.push(row);
         }
+
+        // highlighter
+        highlighter = document.createElementNS(xmlns, "circle");
+        highlighter.setAttributeNS(null, "cx", (TILE/2).toString());
+        highlighter.setAttributeNS(null, "cy", (TILE/2).toString());
+        highlighter.setAttributeNS(null, "r", (TILE/2).toString());
+        highlighter.setAttributeNS(null, "fill", "#85ff3060");
+        highlighter.setAttributeNS(null, "visibility", "hidden");
+        tiles[0][0].appendChild(highlighter);
     };
 
     this.drawPieces = function (chessGame) {
@@ -88,5 +107,9 @@ var ChessBoard = function() {
             piece.parentNode.removeChild(piece);
         });
         pieces = [];
+    };
+
+    this.registerBoardClickCallback = function (cb) {
+        boardClickCallback = cb;
     };
 };

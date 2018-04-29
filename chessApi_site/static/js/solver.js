@@ -1,6 +1,9 @@
 const DEFAULT_DATATYPE = "json";
 const EXERCISES_PATH = "/api/exercises/";
 
+var chessBoard = null;
+var chessGame = null;
+
 // from stackoverflow
 function getUrlParameter(sParam) {
     var sPageURL = decodeURIComponent(window.location.search.substring(1)),
@@ -15,10 +18,13 @@ function getUrlParameter(sParam) {
     }
 }
 
-function getExercise(apiurl) {
-    var chessBoard = new ChessBoard();
-    chessBoard.drawBoard();
+function boardClickCallback (fromsan, tosan) {
+    if (chessGame.move({from: fromsan, to: tosan})) {
+        chessBoard.drawPieces(chessGame);
+    }
+}
 
+function getExercise(apiurl) {
     return $.ajax({
         url: apiurl,
         dataType: DEFAULT_DATATYPE
@@ -28,15 +34,17 @@ function getExercise(apiurl) {
         $("#ex-about").text(data.about);
         $("#ex-author").text(data.author);
 
-        var chessGame = new Chess(data["initial-state"]);
+        chessBoard.registerBoardClickCallback(boardClickCallback);
+        chessGame = new Chess(data["initial-state"]);
         chessBoard.drawPieces(chessGame);
-        //chessBoard.clearPieces();
     }).fail(function (jqXHR, textStatus, errorThrown) {
         $("#message").text("Error receiving exercise data: " + errorThrown);
     })
 }
 
 $(function () {
+    chessBoard = new ChessBoard();
+    chessBoard.drawBoard();
     getExercise(EXERCISES_PATH + getUrlParameter("exerciseid"));
 });
 
