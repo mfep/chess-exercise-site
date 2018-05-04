@@ -13,7 +13,6 @@ a {
 p {
     color: #e2edeb;
     font-style: italic;
-    margin-left: 15px;
 }
 
 .col-sm-6 {
@@ -51,7 +50,7 @@ h2 {
 
 th, td {
     padding: 5px;
-    text-align: left;
+    text-align: center;
 }
 
 em {
