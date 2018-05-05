@@ -3,6 +3,7 @@ const EXERCISES_PATH = "/api/exercises/";
 
 var chessBoard = null;
 var chessGame = null;
+var movelist = "";
 
 // from stackoverflow
 function getUrlParameter(sParam) {
@@ -20,7 +21,13 @@ function getUrlParameter(sParam) {
 
 function boardClickCallback (fromsan, tosan) {
     if (chessGame.move({from: fromsan, to: tosan})) {
+        var history = chessGame.history();
+        var newSan = history[history.length - 1];
+        var testMovelist = movelist === "" ? "" : movelist + ",";
+        testMovelist = testMovelist + newSan;
+        getSolverResult(testMovelist);
         chessBoard.drawPieces(chessGame);
+        movelist = testMovelist;
     }
 }
 
@@ -40,6 +47,18 @@ function getExercise(apiurl) {
     }).fail(function (jqXHR, textStatus, errorThrown) {
         $("#message").text("Error receiving exercise data: " + errorThrown);
     })
+}
+
+function getSolverResult (listmoves, callback) {
+    var apiurl = EXERCISES_PATH + getUrlParameter("exerciseid") + "/solver?solution=" + encodeURIComponent(listmoves);
+    $.ajax({
+        url: apiurl,
+        dataType: DEFAULT_DATATYPE
+    }).done(function (data, textStatus) {
+        console.log(data);
+    }).fail(function (jqXHR, textStatus, errorThrown) {
+        console.log("Error receiving solver data: " + errorThrown);
+    });
 }
 
 $(function () {
