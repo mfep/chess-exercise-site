@@ -43,7 +43,7 @@ GOT_EXERCISES = {
                     'list-moves': {
                         'type': 'string',
                         'title': 'List of moves',
-                        'description': 'PGN code movelist of the exercise solution'
+                        'description': 'comma-separated SAN entries movelist of the exercise solution'
                     },
                     'initial-state': {
                         'type': 'string',
@@ -175,7 +175,7 @@ GOT_EXERCISE = {
                     },
                     'list-moves': {
                         'type': 'string',
-                        'description': 'PGN code movelist of the exercise solution',
+                        'description': 'comma-separated SAN entries movelist of the exercise solution',
                         'title': 'List of moves'
                     }
                 }
@@ -294,46 +294,160 @@ GOT_SUBMISSIONS_EMPTY = {
         }
     }
 }
-GOT_USER= {
-  "@namespaces": {
-       "chessapi": {
-           "name": "/api/link-relations/"
-    }
-  },
-  "@controls": {
+GOT_USER = {
+    "@namespaces": {
+        "chessapi": {
+            "name": "/api/link-relations/"
+        }
+    },
+    "@controls": {
         "self": {
             "href": "/api/users/Mystery/"
-    },
+        },
         "collection": {
             "href": "/api/users/"
-    },
+        },
         "profile": {
-          "href": "/profiles/user-profile/"
-    },
-      "chessapi:delete": {
-          "href": "/api/users/Mystery/",
+            "href": "/profiles/user-profile/"
+        },
+        "chessapi:delete": {
+            "href": "/api/users/Mystery/",
             "method": "DELETE"
-    },
-         "chessapi:all-exercises": {
+        },
+        "chessapi:all-exercises": {
             "href": "/api/exercises/"
-    },
-         "chessapi:user-submission": {
+        },
+        "chessapi:user-submission": {
             "href": "/api/users/Mystery/submissions/"
-    }
-  },
-  "nickname": "Mystery",
-  "registrationdate": 1362015937
+        }
+    },
+    "nickname": "Mystery",
+    "registrationdate": 1362015937
 }
 MODIFY_USER_VALID_DATA = {
     'nickname': 'chess.com',
-    'email': 'chess@gmail.com'
+    'email': 'chess@gmail.com',
+    'former_email': 'mystery@mymail.com'
 }
 
+
+GOT_USERS = {
+   "@namespaces": {
+      "chessapi": {
+         "name": "/api/link-relations/"
+      }
+   },
+   "@controls": {
+      "self": {
+         "href": "/api/users/"
+      },
+      "profile": {
+         "href": "/profiles/user-profile/"
+      },
+      "chessapi:users-all": {
+         "href": "/api/users/",
+         "method": "GET"
+      },
+      "chessapi:add-user": {
+         "title": "Add a new user",
+         "href": "/api/users/",
+         "encoding": "json",
+         "method": "POST",
+         "schema": {
+            "type": "object",
+            "properties": {
+               "nickname": {
+                  "title": "Nickname",
+                  "description": " Unique id string of the user",
+                  "type": "string"
+               },
+               "email": {
+                  "title": "Email address",
+                  "description": "email address of the user.",
+                  "type": "string"
+               }
+            },
+            "required": [
+               "nickname",
+               "email"
+            ]
+         }
+      }
+   },
+   "items": [
+      {
+         "nickname": "Mystery",
+         "registrationdate": 1362015937,
+         "@controls": {
+            "self": {
+               "href": "/api/users/Mystery/"
+            },
+            "profile": {
+               "href": "/profiles/user-profile/"
+            }
+         }
+      },
+      {
+         "nickname": "AxelW",
+         "registrationdate": 1357724086,
+         "@controls": {
+            "self": {
+               "href": "/api/users/AxelW/"
+            },
+            "profile": {
+               "href": "/profiles/user-profile/"
+            }
+         }
+      },
+      {
+         "nickname": "LinuxPenguin",
+         "registrationdate": 1362012937,
+         "@controls": {
+            "self": {
+               "href": "/api/users/LinuxPenguin/"
+            },
+            "profile": {
+               "href": "/profiles/user-profile/"
+            }
+         }
+      },
+      {
+         "nickname": "Koodari",
+         "registrationdate": 1389260086,
+         "@controls": {
+            "self": {
+               "href": "/api/users/Koodari/"
+            },
+            "profile": {
+               "href": "/profiles/user-profile/"
+            }
+         }
+      },
+      {
+         "nickname": "HockeyFan",
+         "registrationdate": 1394357686,
+         "@controls": {
+            "self": {
+               "href": "/api/users/HockeyFan/"
+            },
+            "profile": {
+               "href": "/profiles/user-profile/"
+            }
+         }
+      }
+   ]
+}
+ADD_USER_VALID_DATA = {
+  'nickname': 'Harri',
+  'email': 'Harri@gmail.com'
+}
+ADDED_USER_LOCATION = 'http://localhost:5000/api/users/Harri/'
 
 resources.app.config['Testing'] = True
 resources.app.config['SERVER_NAME'] = 'localhost:5000'
 resources.app.config.update({'Engine': ENGINE})
-
+# Other database parameters.
+initial_users = 2
 
 class ResourcesApiTestCase(unittest.TestCase):
     """
@@ -451,7 +565,7 @@ class ExercisesTestCase(ResourcesApiTestCase):
         print('(' + self.test_add_exercise_not_json.__name__ + ')', self.test_add_exercise_not_json.__doc__)
         resp = self.client.post(resources.api.url_for(resources.Exercises),
                                 data=json.dumps(ADD_EXERCISE_VALID_DATA))
-        self._assertErrorMessage(resp, 400, 'Wrong request format')
+        self._assertErrorMessage(resp, 415, 'Wrong request format')
 
     def test_add_exercise_missing_fields(self):
         """Check if error code is correct when not all fields are provided in request"""
@@ -471,7 +585,7 @@ class ExercisesTestCase(ResourcesApiTestCase):
         resp = self.client.post(resources.api.url_for(resources.Exercises),
                                 headers={CONTENT_TYPE: resources.JSON},
                                 data=json.dumps(request_data))
-        self._assertErrorMessage(resp, 400, 'Existing exercise headline')
+        self._assertErrorMessage(resp, 409, 'Existing exercise headline')
 
     def test_add_exercise_not_existing_user(self):
         """Check if error code is correct when a non-existing username is provided"""
@@ -482,7 +596,7 @@ class ExercisesTestCase(ResourcesApiTestCase):
         resp = self.client.post(resources.api.url_for(resources.Exercises),
                                 headers={CONTENT_TYPE: resources.JSON},
                                 data=json.dumps(request_data))
-        self._assertErrorMessage(resp, 404, 'User not found')
+        self._assertErrorMessage(resp, 404, 'User does not exist')
 
     def test_add_exercise_invalid_email(self):
         """Check if error code is correct when the provided email does not match the one in the database"""
@@ -552,7 +666,7 @@ class ExercisesTestCase(ResourcesApiTestCase):
         exercise_id = 1
         resp = self.client.put(resources.api.url_for(resources.Exercise, exerciseid=exercise_id),
                                data=json.dumps(MODIFY_EXERCISE_VALID_DATA))
-        self._assertErrorMessage(resp, 400, 'Wrong request format')
+        self._assertErrorMessage(resp, 415, 'Wrong request format')
 
     def test_modify_exercise_missing_fields(self):
         """Checks if error message is correct when required fields are missing from the request body"""
@@ -576,7 +690,7 @@ class ExercisesTestCase(ResourcesApiTestCase):
         resp = self.client.put(resources.api.url_for(resources.Exercise, exerciseid=exercise_id),
                                headers={CONTENT_TYPE: resources.JSON},
                                data=json.dumps(request_data))
-        self._assertErrorMessage(resp, 400, 'Existing exercise headline')
+        self._assertErrorMessage(resp, 409, 'Existing exercise headline')
 
     def test_modify_exercise_invalid_email(self):
         """Checks if error message is correct when the provided user's email does not match the one in the database"""
@@ -607,7 +721,7 @@ class ExercisesTestCase(ResourcesApiTestCase):
         print('(' + self.test_delete_exercise.__name__ + ')', self.test_delete_exercise.__doc__)
         exercise_id = 1
         resp = self.client.delete(resources.api.url_for(resources.Exercise, exerciseid=exercise_id)
-                                  +'?author_email=mystery%40mymail.com')
+                                  + '?author_email=mystery%40mymail.com')
         self.assertEqual(204, resp.status_code)
         resp = self.client.get(resources.api.url_for(resources.Exercise, exerciseid=exercise_id))
         self._assertErrorMessage(resp, 404, 'Exercise does not exist')
@@ -618,8 +732,17 @@ class ExercisesTestCase(ResourcesApiTestCase):
               self.test_delete_exercise_non_existing.__doc__)
         exercise_id = 100
         resp = self.client.delete(resources.api.url_for(resources.Exercise, exerciseid=exercise_id)
-                                  +'?author_email=mystery%40mymail.com')
+                                  + '?author_email=mystery%40mymail.com')
         self._assertErrorMessage(resp, 404, 'Exercise does not exist')
+
+    def test_delete_exercise_invalid_email(self):
+        """Checks if error message is correct when an exercise is to be deleted with an invalid author email"""
+        print('(' + self.test_delete_exercise_invalid_email.__name__ + ')',
+              self.test_delete_exercise_invalid_email.__doc__)
+        exercise_id = 1
+        resp = self.client.delete(resources.api.url_for(resources.Exercise, exerciseid=exercise_id)
+                                  + '?author_email=hacker%40mymail.com')
+        self._assertErrorMessage(resp, 401, 'Wrong authentication')
 
     def test_solver_value_solution(self):
         """Checks solver module if the result is correct for identical strings"""
@@ -643,31 +766,31 @@ class ExercisesTestCase(ResourcesApiTestCase):
         """Checks if solver GET works"""
         print('(' + self.test_get_solver.__name__ + ')', self.test_get_solver.__doc__)
         exercise_id = 1
-        resp = self.client.get(resources.api.url_for(resources.Solver, exerciseid=exercise_id)+
+        resp = self.client.get(resources.api.url_for(resources.Solver, exerciseid=exercise_id) +
                                '?solution='+urllib.parse.quote_plus(FOOLS_MATE_MOVES))
         self.assertEqual(200, resp.status_code)
         self.assertDictEqual(GOT_SOLVER, json.loads(resp.data.decode('utf-8')))
 
-    def get_solver_non_existing(self):
+    def test_get_solver_non_existing(self):
         """Checks error message when trying to access a non-existing exercise's solver"""
-        print('(' + self.get_solver_non_existing.__name__ + ')', self.get_solver_non_existing.__doc__)
+        print('(' + self.test_get_solver_non_existing.__name__ + ')', self.test_get_solver_non_existing.__doc__)
         exercise_id = 100
-        resp = self.client.get(resources.api.url_for(resources.Solver, exerciseid=exercise_id)+
+        resp = self.client.get(resources.api.url_for(resources.Solver, exerciseid=exercise_id) +
                                '?solution='+urllib.parse.quote_plus(FOOLS_MATE_MOVES))
         self._assertErrorMessage(resp, 404, 'Exercise does not exist')
 
-    def get_solver_no_query(self):
+    def test_get_solver_no_query(self):
         """Checks error message when no solution query is provided"""
-        print('(' + self.get_solver_no_query.__name__ + ')', self.get_solver_no_query.__doc__)
+        print('(' + self.test_get_solver_no_query.__name__ + ')', self.test_get_solver_no_query.__doc__)
         exercise_id = 1
         resp = self.client.get(resources.api.url_for(resources.Solver, exerciseid=exercise_id))
         self._assertErrorMessage(resp, 400, 'Bad query')
 
-    def get_solver_nonsense_query(self):
+    def test_get_solver_nonsense_query(self):
         """Checks error message when the provided query string is nonsense"""
-        print('(' + self.get_solver_nonsense_query.__name__ + ')', self.get_solver_nonsense_query.__doc__)
+        print('(' + self.test_get_solver_nonsense_query.__name__ + ')', self.test_get_solver_nonsense_query.__doc__)
         exercise_id = 1
-        resp = self.client.get(resources.api.url_for(resources.Solver, exerciseid=exercise_id)+
+        resp = self.client.get(resources.api.url_for(resources.Solver, exerciseid=exercise_id) +
                                '?solution='+urllib.parse.quote_plus("dksajakldjs"))
         self._assertErrorMessage(resp, 400, 'Bad query')
 
@@ -703,12 +826,13 @@ class UsersTestCase(ResourcesApiTestCase):
         print('(' + self.test_submissions_non_existing.__name__ + ')', self.test_submissions_non_existing.__doc__)
         nickname = 'Hacker'
         resp = self.client.get(resources.api.url_for(resources.Submissions, nickname=nickname))
-        self._assertErrorMessage(resp, 404, 'User not found')
+        self._assertErrorMessage(resp, 404, 'User does not exist')
 
     def test_get_user(self):
         """Check if user data can be retrieved"""
         print('(' + self.test_get_user.__name__ + ')', self.test_get_user.__doc__)
-        resp = self.client.get(resources.api.url_for(resources.User, userid=1))
+        nickname = 'Mystery'
+        resp = self.client.get(resources.api.url_for(resources.User, nickname=nickname))
         self.assertEqual(200, resp.status_code)
         self.assertEqual(resources.MASON + ';' + resources.USER_PROFILE, resp.headers.get(CONTENT_TYPE))
         data = json.loads(resp.data.decode('utf-8'))
@@ -717,30 +841,28 @@ class UsersTestCase(ResourcesApiTestCase):
     def test_get_user_non_existing(self):
         """Check error code when 404ing user"""
         print('(' + self.test_get_user_non_existing.__name__ + ')', self.test_get_user_non_existing.__doc__)
-        resp = self.client.get(resources.api.url_for(resources.User, userid=100))
+        nickname = 'Animal'
+        resp = self.client.get(resources.api.url_for(resources.User, nickname=nickname))
         self._assertErrorMessage(resp, 404, 'User does not exist')
-
 
     def test_modify_user_valid(self):
         """Check if user can be modified via PUT request."""
         print('(' + self.test_modify_user_valid.__name__ + ')', self.test_modify_user_valid.__doc__)
-        user_id = 1
-        resp = self.client.put(resources.api.url_for(resources.User, userid=user_id),
+        nickname = 'Mystery'
+        resp = self.client.put(resources.api.url_for(resources.User, nickname=nickname),
                                headers={CONTENT_TYPE: resources.JSON},
                                data=json.dumps(MODIFY_USER_VALID_DATA))
         self.assertEqual(204, resp.status_code)
-        resp = self.client.get(resources.api.url_for(resources.User,  userid=user_id))
+        resp = self.client.get(resources.api.url_for(resources.User, nickname=MODIFY_USER_VALID_DATA['nickname']))
         self.assertEqual(200, resp.status_code)
         data = json.loads(resp.data.decode('utf-8'))
         self.assertEqual(MODIFY_USER_VALID_DATA['nickname'], data['nickname'])
-        self.assertEqual(MODIFY_USER_VALID_DATA['email'], data['email'])
 
     def test_modify_user_non_existing(self):
         """Checks if error message is correct when trying to modify non-existing user"""
-        print('(' + self.test_modify_user_non_existing.__name__ + ')',
-              self.test_modify_user_non_existing.__doc__)
-        user_id = 100
-        resp = self.client.put(resources.api.url_for(resources.User, userid=user_id),
+        print('(' + self.test_modify_user_non_existing.__name__ + ')', self.test_modify_user_non_existing.__doc__)
+        nickname = 'Animal'
+        resp = self.client.put(resources.api.url_for(resources.User, nickname=nickname),
                                headers={CONTENT_TYPE: resources.JSON},
                                data=json.dumps(MODIFY_USER_VALID_DATA))
         self._assertErrorMessage(resp, 404, 'User does not exist')
@@ -748,10 +870,10 @@ class UsersTestCase(ResourcesApiTestCase):
     def test_modify_user_not_json(self):
         """Checks if error message is correct when request format is not set"""
         print('(' + self.test_modify_user_not_json.__name__ + ')', self.test_modify_user_not_json.__doc__)
-        user_id = 1
-        resp = self.client.put(resources.api.url_for(resources.User, userid=user_id),
+        nickname = 'Mystery'
+        resp = self.client.put(resources.api.url_for(resources.User, nickname=nickname),
                                data=json.dumps(MODIFY_USER_VALID_DATA))
-        self._assertErrorMessage(resp, 400, 'Wrong request format')
+        self._assertErrorMessage(resp, 415, 'Wrong request format')
 
     def test_modify_user_missing_fields(self):
         """Checks if error message is correct when required fields are missing from the request body"""
@@ -759,8 +881,8 @@ class UsersTestCase(ResourcesApiTestCase):
               self.test_modify_user_missing_fields.__doc__)
         request_data = MODIFY_USER_VALID_DATA.copy()
         request_data.pop('nickname')
-        user_id = 1
-        resp = self.client.put(resources.api.url_for(resources.User, userid=user_id),
+        nickname = 'Mystery'
+        resp = self.client.put(resources.api.url_for(resources.User, nickname=nickname),
                                headers={CONTENT_TYPE: resources.JSON},
                                data=json.dumps(request_data))
         self._assertErrorMessage(resp, 400, 'Missing fields')
@@ -770,21 +892,20 @@ class UsersTestCase(ResourcesApiTestCase):
         print('(' + self.test_modify_user_existing_nickname.__name__ + ')',
               self.test_modify_user_existing_nickname.__doc__)
         request_data = MODIFY_USER_VALID_DATA.copy()
-        request_data['nickname'] = 'Mystery123'
-        user_id = 1
-        resp = self.client.put(resources.api.url_for(resources.User, userid=user_id),
+        request_data['nickname'] = 'AxelW'
+        nickname = 'Mystery'
+        resp = self.client.put(resources.api.url_for(resources.User, nickname=nickname),
                                headers={CONTENT_TYPE: resources.JSON},
                                data=json.dumps(request_data))
-        self._assertErrorMessage(resp, 400, 'Existing user nickname')
+        self._assertErrorMessage(resp, 409, 'Existing nickname')
 
     def test_modify_user_invalid_email(self):
         """Checks if error message is correct when the provided user's email does not match the one in the database"""
-        print('(' + self.test_modify_user_invalid_email.__name__ + ')',
-              self.test_modify_user_invalid_email.__doc__)
+        print('(' + self.test_modify_user_invalid_email.__name__ + ')', self.test_modify_user_invalid_email.__doc__)
         request_data = MODIFY_USER_VALID_DATA.copy()
-        request_data['email'] = 'hacker%40mymail.com'
-        user_id = 1
-        resp = self.client.put(resources.api.url_for(resources.User, userid=user_id),
+        request_data['former_email'] = 'hacker%40mymail.com'
+        nickname = 'Mystery'
+        resp = self.client.put(resources.api.url_for(resources.User, nickname=nickname),
                                headers={CONTENT_TYPE: resources.JSON},
                                data=json.dumps(request_data))
         self._assertErrorMessage(resp, 401, 'Wrong authentication')
@@ -792,23 +913,74 @@ class UsersTestCase(ResourcesApiTestCase):
     def test_delete_user(self):
         """Checks if user can be deleted"""
         print('(' + self.test_delete_user.__name__ + ')', self.test_delete_user.__doc__)
-        user_id = 1
-        resp = self.client.delete(resources.api.url_for(resources.User, userid=user_id)
-                                  +'?author_email=mystery%40mymail.com')
+        nickname = 'Mystery'
+        resp = self.client.delete(resources.api.url_for(resources.User, nickname=nickname)
+                                  + '?author_email=mystery%40mymail.com')
         self.assertEqual(204, resp.status_code)
-        resp = self.client.get(resources.api.url_for(resources.Exercise, userid=user_id))
+        resp = self.client.get(resources.api.url_for(resources.User, nickname=nickname))
         self._assertErrorMessage(resp, 404, 'User does not exist')
 
-    def test_delete_exercise_non_user(self):
+    def test_delete_user_non_existing(self):
         """Checks if error message is correct when a non-existing user is tried to be deleted"""
-        print('(' + self.test_delete_exercise_non_user.__name__ + ')',
-              self.test_delete_exercise_non_user.__doc__)
-        user_id = 100
-        resp = self.client.delete(resources.api.url_for(resources.User, userid=user_id)
-                                  +'?author_email=mystery%40mymail.com')
+        print('(' + self.test_delete_user_non_existing.__name__ + ')',
+              self.test_delete_user_non_existing.__doc__)
+        nickname = 'Animal'
+        resp = self.client.delete(resources.api.url_for(resources.User, nickname=nickname)
+                                  + '?author_email=animal%40mymail.com')
         self._assertErrorMessage(resp, 404, 'User does not exist')
 
+    def test_delete_user_invalid_email(self):
+        """Checks if error message is correct when a user is to be deleted with invalid authentication email"""
+        print('(' + self.test_delete_user_invalid_email.__name__ + ')', self.test_delete_user_invalid_email.__doc__)
+        nickname = 'Mystery'
+        resp = self.client.delete(resources.api.url_for(resources.User, nickname=nickname)
+                                  + '?author_email=animal%40mymail.com')
+        self._assertErrorMessage(resp, 401, 'Wrong authentication')
 
+    def test_get_users(self):
+        """Checks if users GET request works correctly"""
+        print('(' + self.test_get_users.__name__ + ')', self.test_get_users.__doc__)
+        resp = self.client.get(flask.url_for('users'))
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.headers.get(CONTENT_TYPE), resources.MASON + ';' + resources.USER_PROFILE)
+        data = json.loads(resp.data.decode('utf-8'))
+        self.assertDictEqual(data, GOT_USERS)
+
+    def test_add_user_valid(self):
+        """Check if valid user data can be added"""
+        print('(' + self.test_add_user_valid.__name__ + ')', self.test_add_user_valid.__doc__)
+        resp = self.client.post(resources.api.url_for(resources.Users),
+                                headers={CONTENT_TYPE: resources.JSON},
+                                data=json.dumps(ADD_USER_VALID_DATA))
+        self.assertEqual(resp.status_code, 201)
+        self.assertEqual(resp.headers.get('Location'), ADDED_USER_LOCATION)
+
+    def test_add_user_not_json(self):
+        """Check if error code is correct when Content-Type is not set"""
+        print('(' + self.test_add_user_not_json.__name__ + ')', self.test_add_user_not_json.__doc__)
+        resp = self.client.post(resources.api.url_for(resources.Users),
+                                data=json.dumps(ADD_USER_VALID_DATA))
+        self._assertErrorMessage(resp, 415, 'Wrong request format')
+
+    def test_add_user_missing_fields(self):
+        """Check if error code is correct when not all fields are provided in request"""
+        print('(' + self.test_add_user_missing_fields.__name__ + ')', self.test_add_user_missing_fields.__doc__)
+        request_data = ADD_USER_VALID_DATA.copy()
+        request_data.pop('nickname')
+        resp = self.client.post(resources.api.url_for(resources.Users),
+                                headers={CONTENT_TYPE: resources.JSON},
+                                data=json.dumps(request_data))
+        self._assertErrorMessage(resp, 400, 'Missing fields')
+
+    def test_add_user_existing_nickname(self):
+        """Check if error code is correct when an existing user nickname is provided"""
+        print('(' + self.test_add_user_existing_nickname.__name__ + ')', self.test_add_user_existing_nickname.__doc__)
+        request_data = ADD_USER_VALID_DATA.copy()
+        request_data['nickname'] = 'Mystery'
+        resp = self.client.post(resources.api.url_for(resources.Users),
+                                headers={CONTENT_TYPE: resources.JSON},
+                                data=json.dumps(request_data))
+        self._assertErrorMessage(resp, 409, 'Nickname already exists')
 
 
 if __name__ == '__main__':

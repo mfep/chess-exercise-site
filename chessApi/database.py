@@ -10,8 +10,6 @@ import sqlite3
 import os
 import time
 
-import row as row
-
 DEFAULT_DB_PATH = 'db/chessApi.db'
 DEFAULT_SCHEMA = "db/chessApi_schema_dump.sql"
 DEFAULT_DATA_DUMP = "db/chessApi_data_dump.sql"
@@ -213,7 +211,7 @@ class Connection(object):
             * ``description``: description of the exercise
             * ``sub_date``: the UNIX timestamp of the exercise submission
             * ``initial_state``: the FEN code of the initial state of the exercise
-            * ``list_moves``: PGN string of the exercise solution
+            * ``list_moves``: string of the exercise solution
         """
         return {
             'exercise_id': row['exercise_id'],
@@ -360,39 +358,30 @@ class Connection(object):
                 return None
         return exerciseid
 
-    def modify_user(self, nickname, email):
+    def modify_user(self, old_nickname, new_nickname, new_email):
         """
-        Modify the title, the description the initial state of the message with given id.
-        ``exerciseid``
-        :param str nickname: the exercise's new title
-        :param str email: the exercise's new description
-       :return: the id of the edited exercise or None if the exercise was not found.
+        Modify the nickname and email address of an user.
+        :param old_nickname: The former nickname of the user.
+        :param new_nickname: The newly set nickname of the user.
+        :param new_email: The new email address of the user.
+        :return: True if the user has been successfully modified
         """
-        stmnt = 'UPDATE users SET nickname=:nickname, email=:email WHERE user_id=:user_id'
+        stmnt = 'UPDATE users SET nickname=:new_nickname, email=:new_email WHERE nickname=:old_nickname'
 
         self.set_foreign_keys_support()
         self.con.row_factory = sqlite3.Row
         cur = self.con.cursor()
 
-        user_id = row['user_id']
-        query2 = 'SELECT * FROM users WHERE user_id = ?'
-        pvalue = (user_id,)
-        cur.execute(query2, pvalue)
-
-        pvalue = {"user_id": user_id,
-                  "nickname": nickname,
-                  "email": email,
-                }
+        pvalue = {'new_nickname': new_nickname,
+                  'new_email': new_email,
+                  'old_nickname': old_nickname}
 
         try:
             cur.execute(stmnt, pvalue)
             self.con.commit()
         except sqlite3.Error as e:
-            print("Error %s:" % (e.args[0]))
-        else:
-            if cur.rowcount < 1:
-                return None
-        return user_id
+            return False
+        return True
 
     def create_exercise(self, title, description, creator, initial_state, list_moves):
         """

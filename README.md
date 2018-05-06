@@ -22,6 +22,13 @@ Running the REST API server
 In this case, the default database path is used (`./db/chessApi.db`). In the project root folder:
 - `python -m chessApi.resources`
 
+Running the REST API server and the client site
+-----------------------------------------------
+In the project root folder:
+- `python main.py`
+
+The client is available at `localhost:5000/site/index.html`.
+
 Running the tests
 -----------------
 In the project root folder:
