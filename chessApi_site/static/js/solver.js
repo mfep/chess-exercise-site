@@ -34,6 +34,14 @@ function boardClickCallback (fromsan, tosan) {
     }
 }
 
+function displayNextTurn() {
+    var text = "Black to move";
+    if (chessGame.turn() === "w") {
+        text = "White to move"
+    }
+    $("#solve-message").text(text);
+}
+
 function getExercise(apiurl) {
     return $.ajax({
         url: apiurl,
@@ -46,6 +54,7 @@ function getExercise(apiurl) {
         chessBoard.registerBoardClickCallback(boardClickCallback);
         chessGame = new Chess(data["initial-state"]);
         chessBoard.drawPieces(chessGame);
+        displayNextTurn();
     }).fail(function (jqXHR, textStatus, errorThrown) {
         $("#message").text("Error receiving exercise data: " + errorThrown);
     })
@@ -66,13 +75,16 @@ function getSolverResult (newMoveList, callback) {
             chessBoard.drawPieces(chessGame);
             movelist = newMoveList;
             if (solverValue === "SOLUTION") {
+                $("#solve-message").text("Exercise solved");
                 alert("Exercise solved!");
             } else if (solverValue === "PARTIAL") {
+                displayNextTurn();
                 setTimeout(function () {
                     var opponentMove = data["opponent-move"];
                     movelist = movelist + "," + opponentMove;
                     chessGame.move(opponentMove);
                     chessBoard.drawPieces(chessGame, true);
+                    displayNextTurn();
                     moveEnabled = true;
                 }, opponentWaitMs);
             } else {
