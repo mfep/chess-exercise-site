@@ -4,6 +4,7 @@ const EXERCISES_PATH = "/api/exercises/";
 var chessBoard = null;
 var chessGame = null;
 var movelist = "";
+var moveEnabled = true;
 
 // from stackoverflow
 function getUrlParameter(sParam) {
@@ -20,14 +21,15 @@ function getUrlParameter(sParam) {
 }
 
 function boardClickCallback (fromsan, tosan) {
+    if (!moveEnabled) {
+        return;
+    }
     if (chessGame.move({from: fromsan, to: tosan})) {
         var history = chessGame.history();
         var newSan = history[history.length - 1];
         var testMovelist = movelist === "" ? "" : movelist + ",";
         testMovelist = testMovelist + newSan;
         getSolverResult(testMovelist);
-        chessBoard.drawPieces(chessGame);
-        movelist = testMovelist;
     }
 }
 
@@ -49,13 +51,26 @@ function getExercise(apiurl) {
     })
 }
 
-function getSolverResult (listmoves, callback) {
-    var apiurl = EXERCISES_PATH + getUrlParameter("exerciseid") + "/solver?solution=" + encodeURIComponent(listmoves);
+function getSolverResult (newMoveList, callback) {
+    moveEnabled = false;
+    var apiurl = EXERCISES_PATH + getUrlParameter("exerciseid") + "/solver?solution=" + encodeURIComponent(newMoveList);
     $.ajax({
         url: apiurl,
         dataType: DEFAULT_DATATYPE
     }).done(function (data, textStatus) {
-        console.log(data);
+        var solverValue = data["value"];
+        if (solverValue === "WRONG") {
+            chessGame.undo();
+        } else {
+            chessBoard.drawPieces(chessGame);
+            movelist = newMoveList;
+            if (solverValue === "SOLUTION") {
+                alert("Exercise solved!");
+            } else if (solverValue !== "PARTIAL") {
+                console.log("Error: unexpected solver result");
+            }
+        }
+        moveEnabled = true;
     }).fail(function (jqXHR, textStatus, errorThrown) {
         console.log("Error receiving solver data: " + errorThrown);
     });
