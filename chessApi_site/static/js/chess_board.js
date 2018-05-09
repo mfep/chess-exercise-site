@@ -8,6 +8,7 @@ var ChessBoard = function() {
     var svgnode = document.getElementById("chess-board");
     var fromSan = null;
     var highlighter = null;
+    var moveHighlighters = [];
     var boardClickCallback = function(fromsan, tosan) { console.log(fromsan, tosan) };
 
     function createRectGroupClicked (x, y) {
@@ -56,6 +57,17 @@ var ChessBoard = function() {
             svgnode.appendChild(textElem);
         }
 
+        function createHighlighter(color) {
+            var elem = document.createElementNS(xmlns, "circle");
+            elem.setAttributeNS(null, "cx", (TILE/2).toString());
+            elem.setAttributeNS(null, "cy", (TILE/2).toString());
+            elem.setAttributeNS(null, "r", (TILE/2).toString());
+            elem.setAttributeNS(null, "fill", color);
+            elem.setAttributeNS(null, "visibility", "hidden");
+            tiles[0][0].appendChild(elem);
+            return elem;
+        }
+
         // tiles
         for (var y = 0; y < 8; y++) {
             var row = [];
@@ -80,22 +92,29 @@ var ChessBoard = function() {
         }
 
         // highlighter
-        highlighter = document.createElementNS(xmlns, "circle");
-        highlighter.setAttributeNS(null, "cx", (TILE/2).toString());
-        highlighter.setAttributeNS(null, "cy", (TILE/2).toString());
-        highlighter.setAttributeNS(null, "r", (TILE/2).toString());
-        highlighter.setAttributeNS(null, "fill", "#85ff3060");
-        highlighter.setAttributeNS(null, "visibility", "hidden");
-        tiles[0][0].appendChild(highlighter);
+        highlighter = createHighlighter("#85ff3060");
+        moveHighlighters.push(createHighlighter("#f47d4260"));
+        moveHighlighters.push(createHighlighter("#f47d4260"));
     };
 
-    this.drawPieces = function (chessGame) {
+    this.drawPieces = function (chessGame, displayLastMove) {
         function addPiece(row, col, piece) {
             var pieceElem = document.getElementById(piece).cloneNode(true);
             pieceElem.removeAttribute("id");
             pieceElem.setAttributeNS(null, "transform", "scale(" + PIECE_SCALE + ")");
             tiles[row][col].appendChild(pieceElem);
             return pieceElem;
+        }
+
+        function placeMoveHighlighter(index, san) {
+            var moveHighlighter = moveHighlighters[index];
+            var sanLetter = san[0];
+            var sanNumber = san[1];
+            var row = 8 - sanNumber;
+            var col = sanLetter.charCodeAt(0) - "a".charCodeAt(0);
+
+            moveHighlighter.setAttributeNS(null, "visibility", "visible");
+            tiles[row][col].appendChild(moveHighlighter);
         }
 
         this.clearPieces();
@@ -119,7 +138,12 @@ var ChessBoard = function() {
                     pieces.push(addPiece(y, x, color+"-"+figure));
                 }
             }
-
+        }
+        if (displayLastMove) {
+            var history = chessGame.history({verbose: true});
+            var lastMove = history.slice(-1)[0];
+            placeMoveHighlighter(0, lastMove.from);
+            placeMoveHighlighter(1, lastMove.to);
         }
     };
 
