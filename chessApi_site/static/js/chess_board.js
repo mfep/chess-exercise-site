@@ -118,6 +118,7 @@ var ChessBoard = function() {
         }
 
         this.clearPieces();
+        // TODO use chessGame.board instead
         var boardAscii = chessGame.ascii();
         boardAscii = boardAscii.replace(/ /g, '');
         var lines = boardAscii.split("\n");
@@ -144,6 +145,10 @@ var ChessBoard = function() {
             var lastMove = history.slice(-1)[0];
             placeMoveHighlighter(0, lastMove.from);
             placeMoveHighlighter(1, lastMove.to);
+        } else {
+            moveHighlighters.forEach(function (value) {
+               value.setAttributeNS(null, "visibility", "hidden");
+            });
         }
     };
 
