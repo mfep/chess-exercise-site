@@ -1,4 +1,4 @@
-var ChessBoard = function() {
+var ChessBoard = function(showControls) {
     const xmlns = "http://www.w3.org/2000/svg";
     const TILE = 50;
     const PIECE_SCALE = 1.1;
@@ -30,9 +30,35 @@ var ChessBoard = function() {
         }
     }
 
+    function addPiece(row, col, piece) {
+        var pieceElem = document.getElementById(piece).cloneNode(true);
+        pieceElem.removeAttribute("id");
+        pieceElem.setAttributeNS(null, "transform", "scale(" + PIECE_SCALE + ")");
+        tiles[row][col].appendChild(pieceElem);
+        return pieceElem;
+    }
+
+    function charToChessPieceName(char) {
+        var color = char === char.toUpperCase() ? "white" : "black";
+        var figure = null;
+        switch (char.toLowerCase()) {
+            case "r": figure = "rook"; break;
+            case "n": figure = "knight"; break;
+            case "b": figure = "bishop"; break;
+            case "q": figure = "queen"; break;
+            case "k": figure = "king"; break;
+            case "p": figure = "pawn"; break;
+        }
+        if (figure) {
+            return color+"-"+figure;
+        }
+        return null;
+    }
+
     this.drawBoard = function () {
+        var heightInTiles = showControls ? 11 : 9;
         svgnode.setAttributeNS(null, "width", (9 * TILE).toString());
-        svgnode.setAttributeNS(null, "height", (9 * TILE).toString());
+        svgnode.setAttributeNS(null, "height", (heightInTiles * TILE).toString());
 
         function addRect(x, y, w, h, color) {
             var groupElem = document.createElementNS(xmlns, "g");
@@ -95,17 +121,27 @@ var ChessBoard = function() {
         highlighter = createHighlighter("#85ff3060");
         moveHighlighters.push(createHighlighter("#f47d4260"));
         moveHighlighters.push(createHighlighter("#f47d4260"));
+
+        // controls
+        if (showControls) {
+            var figures = ["king", "queen", "rook", "knight", "bishop", "pawn"];
+            for (var i = 0; i < 2; i++) {
+                row = [];
+                for (var col = 0; col < figures.length; col++) {
+                    var tile = addRect((col+1) * TILE, (9 + i) * TILE, TILE, TILE, "#e2e2e2");
+                    tile.onclick = createRectGroupClicked(col, 8+i);
+                    row.push(tile);
+                }
+                tiles.push(row);
+                for (col = 0; col < figures.length; col++) {
+                    var figureName = (i ? "black-" : "white-") + figures[col];
+                    addPiece(8+i, col, figureName);
+                }
+            }
+        }
     };
 
     this.drawPieces = function (chessGame, displayLastMove) {
-        function addPiece(row, col, piece) {
-            var pieceElem = document.getElementById(piece).cloneNode(true);
-            pieceElem.removeAttribute("id");
-            pieceElem.setAttributeNS(null, "transform", "scale(" + PIECE_SCALE + ")");
-            tiles[row][col].appendChild(pieceElem);
-            return pieceElem;
-        }
-
         function placeMoveHighlighter(index, san) {
             var moveHighlighter = moveHighlighters[index];
             var sanLetter = san[0];
@@ -125,18 +161,9 @@ var ChessBoard = function() {
         for (var y = 0; y < 8; ++y) {
             for (var x = 0; x < 8; ++x) {
                 var char = lines[y+1].charAt(x+2);
-                var color = char === char.toUpperCase() ? "white" : "black";
-                var figure = null;
-                switch (char.toLowerCase()) {
-                    case "r": figure = "rook"; break;
-                    case "n": figure = "knight"; break;
-                    case "b": figure = "bishop"; break;
-                    case "q": figure = "queen"; break;
-                    case "k": figure = "king"; break;
-                    case "p": figure = "pawn"; break;
-                }
+                var figure = charToChessPieceName(char);
                 if (figure) {
-                    pieces.push(addPiece(y, x, color+"-"+figure));
+                    pieces.push(addPiece(y, x, figure));
                 }
             }
         }
