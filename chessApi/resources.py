@@ -272,10 +272,11 @@ def _compare_exercise_solution(solution, proposed):
         `SOLVER_WRONG` otherwise.
     """
     if solution == proposed:
-        return SOLVER_SOLUTION
+        return SOLVER_SOLUTION,
     if solution.find(proposed) == 0:
-        return SOLVER_PARTIAL
-    return SOLVER_WRONG
+        opponent_move = solution[len(proposed) + 1: solution.find(',', len(proposed) + 1)]
+        return SOLVER_PARTIAL, opponent_move
+    return SOLVER_WRONG,
 
 
 def _create_exercise_items_list(exercises_db):
@@ -840,7 +841,8 @@ class Solver(Resource):
         # create and return the envelope object
         envelope = ChessApiObject(api.url_for(Solver, exerciseid=exerciseid), EXERCISE_PROFILE)
         envelope.add_control('up', api.url_for(Exercise, exerciseid=exerciseid))
-        envelope['value'] = result
+        envelope['value'] = result[0]
+        envelope['opponent-move'] = result[1] if len(result) > 1 else None
         return Response(json.dumps(envelope), 200, mimetype=MASON+';'+EXERCISE_PROFILE)
 
 
