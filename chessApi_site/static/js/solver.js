@@ -1,8 +1,10 @@
 const DEFAULT_DATATYPE = "json";
 const EXERCISES_PATH = "/api/exercises/";
 
+const opponentWaitMs = 500;
 var chessBoard = null;
 var chessGame = null;
+var fullMoveList = null;
 var movelist = "";
 var moveEnabled = true;
 
@@ -42,7 +44,8 @@ function getExercise(apiurl) {
         $("#ex-title").text(data.headline);
         $("#ex-about").text(data.about);
         $("#ex-author").text(data.author);
-
+        // TODO restrict full move list to server, and return opponent move with solver
+        fullMoveList = data["list-moves"].split(",");
         chessBoard.registerBoardClickCallback(boardClickCallback);
         chessGame = new Chess(data["initial-state"]);
         chessBoard.drawPieces(chessGame);
@@ -61,18 +64,29 @@ function getSolverResult (newMoveList, callback) {
         var solverValue = data["value"];
         if (solverValue === "WRONG") {
             chessGame.undo();
+            moveEnabled = true;
         } else {
             chessBoard.drawPieces(chessGame);
             movelist = newMoveList;
             if (solverValue === "SOLUTION") {
                 alert("Exercise solved!");
-            } else if (solverValue !== "PARTIAL") {
+            } else if (solverValue === "PARTIAL") {
+                setTimeout(function () {
+                    fullMoveList.shift();
+                    var opponentMove = fullMoveList[0];
+                    fullMoveList.shift();
+                    movelist = movelist + "," + opponentMove;
+                    chessGame.move(opponentMove);
+                    chessBoard.drawPieces(chessGame, true);
+                    moveEnabled = true;
+                }, opponentWaitMs);
+            } else {
                 console.log("Error: unexpected solver result");
             }
         }
-        moveEnabled = true;
     }).fail(function (jqXHR, textStatus, errorThrown) {
         console.log("Error receiving solver data: " + errorThrown);
+        moveEnabled = true;
     });
 }
 
