@@ -7,7 +7,9 @@ var chessGame = null;
 var initialBoardSet = true;
 
 function checkSubmittable () {
-    return (chessGame.turn() === "b") && chessGame.in_checkmate();
+    return (chessGame.turn() === "b")
+        && chessGame.in_checkmate()
+        && $("#ex-title").val();
 }
 
 function initialBoardClick (fromsan, tosan) {
@@ -53,8 +55,8 @@ function submitRequest () {
     const authormail = "mystery@mymail.com";
 
     var requestBody = {
-        headline: $("#ex-title").text(),
-        about: $("#ex-about").text(),
+        headline: $("#ex-title").val(),
+        about: $("#ex-about").val(),
         author: author,
         "author-email": authormail,
         "initial-state": $("#ex-initial-board").text(),
