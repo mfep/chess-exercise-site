@@ -1,5 +1,6 @@
 const DEFAULT_CONTENTTYPE = "application/json";
 const EXERCISES_PATH = "/api/exercises/";
+const EXERCISE_PAGE = "/site/solvepage.html?exerciseid=";
 
 var chessBoard = null;
 var chessGame = null;
@@ -65,10 +66,13 @@ function submitRequest () {
         contentType: DEFAULT_CONTENTTYPE,
         data: JSON.stringify(requestBody),
         type: "POST"
-    }).done(function (data, textstatus) {
-        console.log(data, textstatus);
+    }).done(function (data, textstatus, xhr) {
+        var location = xhr.getResponseHeader("Location");
+        var exerciseid = location.split("/").slice(-2)[0];
+        window.location.replace(EXERCISE_PAGE + exerciseid);
     }).fail(function (jqXHR, textstatus, errorthrown) {
-        console.log(jqXHR.responseText, textstatus, errorthrown);
+        var response = JSON.parse(jqXHR.responseText);
+        alert(errorthrown + " : " + response["@error"]["@message"]);
     })
 }
 
