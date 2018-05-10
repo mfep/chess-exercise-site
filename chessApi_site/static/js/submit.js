@@ -1,4 +1,3 @@
-const DEFAULT_DATATYPE = "json";
 const DEFAULT_CONTENTTYPE = "application/json";
 const EXERCISES_PATH = "/api/exercises/";
 
