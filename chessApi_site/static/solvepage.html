@@ -10,6 +10,7 @@
 	<link rel="stylesheet" type="text/css" href="css/chess.css">
     <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.2/chess.js"></script>
+    <script type="text/javascript" src="js/common.js"></script>
     <script type="text/javascript" src="js/chess_board.js"></script>
     <script type="text/javascript" src="js/solver.js"></script>
 </head>
@@ -29,12 +30,9 @@
                         <li>Author: <span id="ex-author">???</span></li>
                     </ul>
                 </div>
-                <div id="ex-moves">
+                <div>
                     <h2>Moves</h2>
-                    <ul>
-                        <li>Qg6+Kh8</li>
-                        <li>Qxf6+</li>
-                    </ul>
+                    <ul id="ex-moves"></ul>
                 </div>
                 <em id="solve-message" style="position: absolute; bottom:10px; right: 10px; color:#116466;">White to move</em>
 

@@ -75,6 +75,7 @@ function getSolverResult(newMoveList, callback) {
             chessGame.undo();
             moveEnabled = true;
         } else {
+            updateMoveList(chessGame);
             chessBoard.drawPieces(chessGame);
             movelist = newMoveList;
             if (solverValue === "SOLUTION") {
@@ -86,6 +87,7 @@ function getSolverResult(newMoveList, callback) {
                     var opponentMove = data["opponent-move"];
                     movelist = movelist + "," + opponentMove;
                     chessGame.move(opponentMove);
+                    updateMoveList(chessGame);
                     chessBoard.drawPieces(chessGame, true);
                     displayNextTurn();
                     moveEnabled = true;

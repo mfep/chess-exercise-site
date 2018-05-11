@@ -45,6 +45,7 @@ function initialBoardClick(fromsan, tosan) {
 
 function setMovesClick(fromsan, tosan) {
     if (chessGame.move({from: fromsan, to: tosan})) {
+        updateMoveList(chessGame);
         chessBoard.drawPieces(chessGame);
         if (checkSubmittable()) {
             $("#submit-btn").text("Submit exercise");
