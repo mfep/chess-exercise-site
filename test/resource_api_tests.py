@@ -17,7 +17,9 @@ DEFAULT_BOARD_FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
 CUSTOM_BOARD_FEN = 'rnbqkbnr/pppppppp/5q2/8/8/5P2/PPPPP1PP/RNBQKBNR w KQkq - 0 1'
 FOOLS_MATE_MOVES = 'f3,e5,g4,Qh4#'
 FOOLS_MATE_MOVES_BEGINNING = 'f3,e5'
+FOOLS_MATE_MOVES_RESULT = resources.SOLVER_PARTIAL, 'g4'
 NON_CHECKMATE_MOVES = 'Nc3,d5,Ne4,dxe4'
+NON_CHECKMATE_RESULT = NON_CHECKMATE_MOVES, None
 CUSTOM_MOVES = 'g4,Qh4#'
 GOT_EXERCISES = {
     '@controls': {
@@ -232,6 +234,7 @@ GOT_SOLVER = {
             'href': '/profiles/exercise-profile/'
         }
     },
+    'opponent-move': None,
     'value': 'SOLUTION'
 }
 GOT_SUBMISSIONS_NONEMPTY = {
@@ -531,7 +534,7 @@ class ExercisesTestCase(ResourcesApiTestCase):
         """Tests if an exercise not resulting in checkmate is reported as invalid"""
         print('(' + self.test_check_chess_data_non_checkmate.__name__ + ')',
               self.test_check_chess_data_non_checkmate.__doc__)
-        self.assertFalse(resources._check_chess_data(DEFAULT_BOARD_FEN, NON_CHECKMATE_MOVES))
+        self.assertFalse(resources._check_chess_data(DEFAULT_BOARD_FEN, NON_CHECKMATE_RESULT))
 
     def test_url(self):
         """Checks that the URL points to the right resource"""
@@ -747,19 +750,19 @@ class ExercisesTestCase(ResourcesApiTestCase):
     def test_solver_value_solution(self):
         """Checks solver module if the result is correct for identical strings"""
         print('(' + self.test_solver_value_solution.__name__ + ')', self.test_solver_value_solution.__doc__)
-        self.assertEqual(resources.SOLVER_SOLUTION,
+        self.assertEqual((resources.SOLVER_SOLUTION,),
                          resources._compare_exercise_solution(FOOLS_MATE_MOVES, FOOLS_MATE_MOVES))
 
     def test_solver_value_partial(self):
         """Checks solver module if the result is correct for beginning substring"""
         print('(' + self.test_solver_value_partial.__name__ + ')', self.test_solver_value_partial.__doc__)
-        self.assertEqual(resources.SOLVER_PARTIAL,
+        self.assertEqual(FOOLS_MATE_MOVES_RESULT,
                          resources._compare_exercise_solution(FOOLS_MATE_MOVES, FOOLS_MATE_MOVES_BEGINNING))
 
     def test_solver_value_wrong(self):
         """Checks solver module if the result is correct for entirely different string"""
         print('(' + self.test_solver_value_wrong.__name__ + ')', self.test_solver_value_wrong.__doc__)
-        self.assertEqual(resources.SOLVER_WRONG,
+        self.assertEqual((resources.SOLVER_WRONG,),
                          resources._compare_exercise_solution(FOOLS_MATE_MOVES, NON_CHECKMATE_MOVES))
 
     def test_get_solver(self):
