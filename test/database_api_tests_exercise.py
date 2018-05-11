@@ -18,8 +18,8 @@ EXERCISE1 = {
     'title': 'Fool Mate',
     'description': 'The quickest checkmate available.',
     'sub_date': 1519061565,
-    'initial_state': 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
-    'list_moves': 'f3,e5,g4,Qh4#'
+    'initial_state': 'rnbqkbnr/pppppppp/8/8/8/5P2/PPPPP1PP/RNBQKBNR b KQkq - 0 1',
+    'list_moves': 'e6,g4,Qh4#'
 }
 EXERCISE2_MODIFIED = {
     'exercise_id': 2,

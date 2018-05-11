@@ -16,6 +16,7 @@ CONTENT_TYPE = 'Content-Type'
 DEFAULT_BOARD_FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
 CUSTOM_BOARD_FEN = 'rnbqkbnr/pppppppp/5q2/8/8/5P2/PPPPP1PP/RNBQKBNR w KQkq - 0 1'
 FOOLS_MATE_MOVES = 'f3,e5,g4,Qh4#'
+OTHER_FOOLS_MATE_MOVES = 'e6,g4,Qh4#'
 FOOLS_MATE_MOVES_BEGINNING = 'f3,e5'
 FOOLS_MATE_MOVES_RESULT = resources.SOLVER_PARTIAL, 'g4'
 NON_CHECKMATE_MOVES = 'Nc3,d5,Ne4,dxe4'
@@ -131,11 +132,11 @@ GOT_EXERCISE = {
             'name': '/api/link-relations/'
         }
     },
-    'initial-state': 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
+    'initial-state': 'rnbqkbnr/pppppppp/8/8/8/5P2/PPPPP1PP/RNBQKBNR b KQkq - 0 1',
     'dateCreated': 1519061565,
     'about': 'The quickest checkmate available.',
     'author': 'Mystery',
-    'list-moves': 'f3,e5,g4,Qh4#',
+    'list-moves': 'e6,g4,Qh4#',
     '@controls': {
         'collection': {
             'href': '/api/exercises/'
@@ -770,7 +771,7 @@ class ExercisesTestCase(ResourcesApiTestCase):
         print('(' + self.test_get_solver.__name__ + ')', self.test_get_solver.__doc__)
         exercise_id = 1
         resp = self.client.get(resources.api.url_for(resources.Solver, exerciseid=exercise_id) +
-                               '?solution='+urllib.parse.quote_plus(FOOLS_MATE_MOVES))
+                               '?solution='+urllib.parse.quote_plus(OTHER_FOOLS_MATE_MOVES))
         self.assertEqual(200, resp.status_code)
         self.assertDictEqual(GOT_SOLVER, json.loads(resp.data.decode('utf-8')))
 
