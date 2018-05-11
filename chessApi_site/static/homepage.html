@@ -8,6 +8,9 @@
     <!-- open-iconic-bootstrap (icon set for bootstrap) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/open-iconic/1.1.1/font/css/open-iconic-bootstrap.min.css" integrity="sha256-BJ/G+e+y7bQdrYkS2RBTyNfBHpA9IuGaPmf9htub5MQ=" crossorigin="anonymous" />
 	<link rel="stylesheet" type="text/css" href="css/chess.css">
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+    <script type="text/javascript" src="js/home.js"></script>
+
 </head>
 <body>
     <a href="/site/submitpage.html" class="btn btn-default" style="color: #e2edeb; float: right;">Submit Exercise</a>
@@ -20,25 +23,51 @@
         <div class="col-sm-6" >
             <h2><a style="color: #116466" href="/site/homepage.html">All Users</a></h2>
             <p>Click nickname to list exercises of the user</p>
-            <table id="user-all">
+            <table id="user-ll">
                 <tr><th class="nav-link">Nickname</th><th>No. of Submission</th><th></th></tr>
-                <tr><th><a class="user_link nav-link " href="/site/usermystery.html">Mystery</a></th><th>3</th><th><span class="oi oi-trash" title="trash" aria-hidden="true"></span></th></tr>
-                <tr><th><a class="user_link nav-link " href="/api/users/AxelW/">AxelW</a></th><th>5</th><th></th></tr>
-                <tr><th><a class="user_link nav-link " href="/api/users/LinuxPenguin/">LinuxPenguin</a></th><th>6</th><th></th></tr>
-                <tr><th><a class="user_link nav-link " href="/api/users/Koodari/">Koodari</a></th><th>9</th><th></th></tr>
-                <tr><th><a class="user_link nav-link " href="/api/users/HockeyFan/">HockeyFan</a></th><th>1</th><th></th></tr>
+            </table>
+            <table id="user-all">
+                <tr><th><a class="user_link nav-link " href="/site/usermystery.html">Mystery</a></th><th></th><th><span class="oi oi-trash" title="trash" aria-hidden="true"></span></th></tr>
+                <!--<tr><th><a class="user_link nav-link " href="/api/users/AxelW/">AxelW</a></th><th>5</th><th></th></tr>-->
+                <!--<tr><th><a class="user_link nav-link " href="/api/users/LinuxPenguin/">LinuxPenguin</a></th><th>6</th><th></th></tr>-->
+                <!--<tr><th><a class="user_link nav-link " href="/api/users/Koodari/">Koodari</a></th><th>9</th><th></th></tr>-->
+                <!--<tr><th><a class="user_link nav-link " href="/api/users/HockeyFan/">HockeyFan</a></th><th>1</th><th></th></tr>-->
             </table>
         </div>
         <div class="col-sm-6">
             <h2><a style="color: #116466" href="/site/homepage.html">All Exercises</a></h2>
             <p>Click title to open exercise</p>
             <table id="exercise-all">
+                <!--<tr><th class="nav-link">Exercise Title</th><th>Solved Times</th><th></th></tr>-->
+                <!--<tr><th><a class="exercise_link nav-link" href="/site/solvepage.html?exerciseid=1">Exercise 001</a></th><th>8</th><th><span class="oi oi-trash" title="trash" aria-hidden="true"></span></th></tr>-->
+                <!--<tr><th><a class="exercise_link nav-link" href="/site/solvepage.html?exerciseid=2">Exercise 002</a></th><th>17</th><th><span class="oi oi-trash" title="trash" aria-hidden="true"></span></th></tr>-->
+                <!--<tr><th><a class="exercise_link nav-link" href="/site/solvepage.html?exerciseid=3">Exercise 003</a></th><th>2</th><th><span class="oi oi-trash" title="trash" aria-hidden="true"></span></th></tr>-->
+                <!--<tr><th><a class="exercise_link nav-link" href="/site/solvepage.html?exerciseid=4">Exercise 004</a></th><th>0</th><th></th></tr>-->
+                <!--<tr><th><a class="exercise_link nav-link" href="/site/solvepage.html?exerciseid=5">Exercise 005</a></th><th>5</th><th></th></tr>-->
+            </table>
+        </div>
+        </div>
+        <!-- Content here -->
+    </div>
+    <div class="container" hidden="true">
+        <div class="row">
+        <div class="col-sm-6" >
+            <h2><a style="color: #116466" href="/site/homepage.html">All Users</a></h2>
+            <p>Click nickname to list exercises of the user</p>
+            <table id="user">
+                <tr><th class="nav-link">Nickname</th><th>No. of Submission</th><th></th></tr>
+                <tr><th><a class="user_link nav-link " href="/site/usermystery.html">Mystery</a></th><th>3</th><th><span class="oi oi-trash" title="trash" aria-hidden="true"></span></th></tr>
+
+            </table>
+        </div>
+        <div class="col-sm-6">
+            <h2><a style="color: #116466" href="/site/homepage.html">All Exercises</a></h2>
+            <p>Click title to open exercise</p>
+            <table id="exercises">
                 <tr><th class="nav-link">Exercise Title</th><th>Solved Times</th><th></th></tr>
-                <tr><th><a class="exercise_link nav-link" href="/site/solvepage.html?exerciseid=1">Exercise 001</a></th><th>8</th><th><span class="oi oi-trash" title="trash" aria-hidden="true"></span></th></tr>
-                <tr><th><a class="exercise_link nav-link" href="/site/solvepage.html?exerciseid=2">Exercise 002</a></th><th>17</th><th><span class="oi oi-trash" title="trash" aria-hidden="true"></span></th></tr>
-                <tr><th><a class="exercise_link nav-link" href="/site/solvepage.html?exerciseid=3">Exercise 003</a></th><th>2</th><th><span class="oi oi-trash" title="trash" aria-hidden="true"></span></th></tr>
-                <tr><th><a class="exercise_link nav-link" href="/site/solvepage.html?exerciseid=4">Exercise 004</a></th><th>0</th><th></th></tr>
-                <tr><th><a class="exercise_link nav-link" href="/site/solvepage.html?exerciseid=5">Exercise 005</a></th><th>5</th><th></th></tr>
+                <!--<tr><th><a class="exercise_link nav-link" href="/site/solvepage.html?exerciseid=1">Exercise 001</a></th><th>8</th><th><span class="oi oi-trash" title="trash" aria-hidden="true"></span></th></tr>-->
+                <!--<tr><th><a class="exercise_link nav-link" href="/site/solvepage.html?exerciseid=2">Exercise 002</a></th><th>17</th><th><span class="oi oi-trash" title="trash" aria-hidden="true"></span></th></tr>-->
+                <!--<tr><th><a class="exercise_link nav-link" href="/site/solvepage.html?exerciseid=3">Exercise 003</a></th><th>2</th><th><span class="oi oi-trash" title="trash" aria-hidden="true"></span></th></tr>-->
             </table>
         </div>
         </div>
