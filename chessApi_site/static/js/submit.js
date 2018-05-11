@@ -98,4 +98,9 @@ $(function () {
     chessBoard.drawPieces(chessGame);
 
     $("#submit-btn").click(submitBtnClicked);
+    $("#ex-title").change(function () {
+        if (checkSubmittable()) {
+            $("#submit-btn").text("Submit exercise");
+        }
+    })
 });
