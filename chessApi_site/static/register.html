@@ -8,6 +8,8 @@
     <!-- open-iconic-bootstrap (icon set for bootstrap) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/open-iconic/1.1.1/font/css/open-iconic-bootstrap.min.css" integrity="sha256-BJ/G+e+y7bQdrYkS2RBTyNfBHpA9IuGaPmf9htub5MQ=" crossorigin="anonymous" />
 	<link rel="stylesheet" type="text/css" href="css/chess.css">
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+    <script src="js/register.js"></script>
 </head>
 <body>
     <a href="/site/submitpage.html" class="btn btn-default" style="color: #e2edeb; float: right;">Submit Exercise</a>
@@ -27,8 +29,8 @@
             <h2>Register</h2>
             <p>input nickname and email address to register</p>
             <form class="login">
-                <p>Nickname:<br> <input type="text" name="user_nickname" value="Mystery"></p>
-                <p>E-mail:<br> <input type="email" name="user_email" value="Mystery@gmail.com"></p>
+                <p>Nickname:<br> <input id="register-nickname" type="text" name="user_nickname" value="Mystery"></p>
+                <p>E-mail:<br> <input id="register-email" type="email" name="user_email" value="Mystery@gmail.com"></p>
                 <input type="submit" value="Register">
             </form>
         </div>

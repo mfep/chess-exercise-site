@@ -322,14 +322,18 @@ def create_error_response(status_code, title, message=None):
     return Response(json.dumps(envelope), status_code, mimetype=MASON + ';' + ERROR_PROFILE)
 
 
-def _check_free_user_nickname(nickname):
+def _check_free_user_nickname(user_db, nickname):
     """
     Checks if the given exercise headline exists already in the database.
+    We let changing the nickname to the same if it's the same user.
+    :param user_db: The unmodified user from database
     :param nickname: The nickname string to be checked.
     :return: `True` if the given nickname does not exist in the database.
     """
-    user_db = g.con.get_users()
-    return not any(map(lambda ex: ex['nickname'] == nickname, user_db))
+    if user_db['nickname'] == nickname:
+        return True
+    users_db = g.con.get_users()
+    return not any(map(lambda user: user['nickname'] == nickname, users_db))
 
 
 NOT_JSON_RESP = create_error_response(415, 'Wrong request format', JSON + ' is required')
@@ -531,8 +535,9 @@ class User(Resource):
                                          'Be sure you to fill the nickname field,'
                                          'email and former email field.')
 
+        user_db = g.con.get_user(nickname)
         # Check if the user exists
-        if not g.con.get_user(nickname):
+        if not user_db:
             return missing_user_response(nickname)
 
         # check if the email addresses match
@@ -540,7 +545,7 @@ class User(Resource):
             return WRONG_AUTH_RESP
 
         # check if new nickname exists already
-        if not _check_free_user_nickname(new_nickname):
+        if not _check_free_user_nickname(user_db, new_nickname):
             return EXISTING_NICKNAME_RESP
 
         if not g.con.modify_user(nickname, new_nickname, new_email):
