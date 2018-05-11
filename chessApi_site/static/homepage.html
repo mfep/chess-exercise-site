@@ -9,13 +9,17 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/open-iconic/1.1.1/font/css/open-iconic-bootstrap.min.css" integrity="sha256-BJ/G+e+y7bQdrYkS2RBTyNfBHpA9IuGaPmf9htub5MQ=" crossorigin="anonymous" />
 	<link rel="stylesheet" type="text/css" href="css/chess.css">
     <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+    <script type="text/javascript" src="js/common.js"></script>
     <script type="text/javascript" src="js/home.js"></script>
-
 </head>
 <body>
-    <a href="/site/submitpage.html" class="btn btn-default" style="color: #e2edeb; float: right;">Submit Exercise</a>
-    <a href="/site/register.html" class="btn btn-default" style="color: #e2edeb; float: right;">Register/Login</a>
-    <a href="/site/homepage.html" class="btn btn-default" style="color: #e2edeb; float: right;"><span class="oi oi-person" title="person" aria-hidden="true"></span> <span id="user-nickname">Mystery </span><span class="oi oi-account-logout" title="account-logout" aria-hidden="true"></span></a>
+    <a href="submitpage.html" class="btn btn-default" style="color: #e2edeb; float: right;">Submit Exercise</a>
+    <a id="to-register-btn" href="register.html" class="btn btn-default" style="color: #e2edeb; float: right;">
+        Register/Login</a>
+    <span id="user-indicator" class="btn btn-default" style="color: #e2edeb; float: right;">
+        <i class="oi oi-person" title="person" aria-hidden="true"></i>
+        <span id="user-nickname">???</span>
+        <i id="user-logout" class="oi oi-account-logout" title="account-logout" aria-hidden="true"></i></span>
 
     <h1>Chess Community</h1>
     <p style="margin-left:15px">Submit and Slove Chess Exercises</p>

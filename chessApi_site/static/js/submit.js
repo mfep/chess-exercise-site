@@ -26,8 +26,8 @@ function updateUi() {
 }
 
 function checkRegistered() {
-    nickname = window.localStorage.getItem("community-chess-nickname");
-    email = window.localStorage.getItem("community-chess-email");
+    nickname = window.localStorage.getItem(NICKNAME_STORAGE_KEY);
+    email = window.localStorage.getItem(EMAIL_STORAGE_KEY);
     if (nickname && email) {
         $("#ex-author").text(nickname);
     } else {
