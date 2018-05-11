@@ -1,10 +1,23 @@
 const DEFAULT_CONTENTTYPE = "application/json";
 const EXERCISES_PATH = "/api/exercises/";
 const EXERCISE_PAGE = "/site/solvepage.html?exerciseid=";
+const REG_PAGE = "/site/register.html";
 
 var chessBoard = null;
 var chessGame = null;
 var initialBoardSet = true;
+var nickname = null;
+var email = null;
+
+function checkRegistered () {
+    nickname = window.localStorage.getItem("community-chess-nickname");
+    email = window.localStorage.getItem("community-chess-email");
+    if (nickname && email) {
+        $("#ex-author").text(nickname);
+    } else {
+        window.location.replace(REG_PAGE);
+    }
+}
 
 function checkSubmittable () {
     return (chessGame.turn() === "b")
@@ -51,14 +64,11 @@ function submitBtnClicked () {
 }
 
 function submitRequest () {
-    const author = "Mystery";
-    const authormail = "mystery@mymail.com";
-
     var requestBody = {
         headline: $("#ex-title").val(),
         about: $("#ex-about").val(),
-        author: author,
-        "author-email": authormail,
+        author: nickname,
+        "author-email": email,
         "initial-state": $("#ex-initial-board").text(),
         "list-moves": chessGame.history().join()
     };
@@ -79,6 +89,8 @@ function submitRequest () {
 }
 
 $(function () {
+    checkRegistered();
+
     chessGame = new Chess();
     chessBoard = new ChessBoard(true);
     chessBoard.drawBoard();
