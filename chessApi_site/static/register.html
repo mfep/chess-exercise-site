@@ -3,39 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <title>Register</title>
-    <!-- Bootstrap 4.1 -->
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" integrity="sha384-WskhaSGFgHYWDcbwN70/dfYBj47jz9qbsMId/iRN3ewGhXQFZCSftd1LZCfmhktB" crossorigin="anonymous">
-    <!-- open-iconic-bootstrap (icon set for bootstrap) -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/open-iconic/1.1.1/font/css/open-iconic-bootstrap.min.css" integrity="sha256-BJ/G+e+y7bQdrYkS2RBTyNfBHpA9IuGaPmf9htub5MQ=" crossorigin="anonymous" />
-	<link rel="stylesheet" type="text/css" href="css/chess.css">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css"
+          integrity="sha384-WskhaSGFgHYWDcbwN70/dfYBj47jz9qbsMId/iRN3ewGhXQFZCSftd1LZCfmhktB" crossorigin="anonymous">
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/open-iconic/1.1.1/font/css/open-iconic-bootstrap.min.css"
+          integrity="sha256-BJ/G+e+y7bQdrYkS2RBTyNfBHpA9IuGaPmf9htub5MQ=" crossorigin="anonymous"/>
+    <link rel="stylesheet" type="text/css" href="css/chess.css">
     <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
     <script src="js/register.js"></script>
 </head>
 <body>
-    <a href="/site/submitpage.html" class="btn btn-default" style="color: #e2edeb; float: right;">Submit Exercise</a>
-    <h1><a style="color: #e2edeb" href="/site/homepage.html">Chess Community</a></h1>
-    <p style="margin-left:15px">Submit and Slove Chess Exercises</p>
-    <div class="container">
-        <div class="row">
-        <div class="col-sm-6" >
-            <h2>Login</h2>
-            <p>input email addres to login</p>
-            <form class="login">
-                <p>E-mail: <br><input type="email" name="user_email" value="Mystery@gmail.com"></p>
-                <input type="submit" value="Login">
-            </form>
-        </div>
+<h1><a style="color: #e2edeb" href="homepage.html">Chess Community</a></h1>
+<p style="margin-left:15px">Submit and Solve Chess Exercises</p>
+<div class="container">
+    <div class="row">
         <div class="col-sm-6">
-            <h2>Register</h2>
-            <p>input nickname and email address to register</p>
+            <h2>Register/Login</h2>
+            <p>Please fill in your nickname and email address for registration/login</p>
             <form class="login">
-                <p>Nickname:<br> <input id="register-nickname" type="text" name="user_nickname" value="Mystery"></p>
-                <p>E-mail:<br> <input id="register-email" type="email" name="user_email" value="Mystery@gmail.com"></p>
-                <input type="submit" value="Register">
+                <p>Nickname:<br> <input id="register-nickname" type="text" name="user_nickname"></p>
+                <p>E-mail:<br> <input id="register-email" type="email" name="user_email"></p>
+                <input type="submit" value="Register/Login">
             </form>
         </div>
-        </div>
-        <!-- Content here -->
     </div>
+</div>
 </body>
 </html>
