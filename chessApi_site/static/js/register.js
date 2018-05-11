@@ -1,13 +1,15 @@
+(function () {
+
 const DEFAULT_CONTENTTYPE = "application/json";
 const USERS_PATH = "/api/users/";
 const SUBMIT_PAGE = "/site/submitpage.html";
 
-function saveUserToPrefs (nickname, email) {
+function saveUserToPrefs(nickname, email) {
     window.localStorage.setItem("community-chess-nickname", nickname);
     window.localStorage.setItem("community-chess-email", email);
 }
 
-function registerButtonClicked () {
+function registerButtonClicked() {
     var nickname = $("#register-nickname").val();
     var email = $("#register-email").val();
 
@@ -61,3 +63,5 @@ function registerButtonClicked () {
 $(function () {
     $("form.login").submit(registerButtonClicked);
 });
+
+})();

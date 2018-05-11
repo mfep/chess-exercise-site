@@ -1,7 +1,9 @@
+(function () {
+
 const DEFAULT_DATATYPE = "json";
 const EXERCISES_PATH = "/api/exercises/";
-
 const opponentWaitMs = 500;
+
 var chessBoard = null;
 var chessGame = null;
 var movelist = "";
@@ -21,7 +23,7 @@ function getUrlParameter(sParam) {
     }
 }
 
-function boardClickCallback (fromsan, tosan) {
+function boardClickCallback(fromsan, tosan) {
     if (!moveEnabled) {
         return;
     }
@@ -60,9 +62,10 @@ function getExercise(apiurl) {
     })
 }
 
-function getSolverResult (newMoveList, callback) {
+function getSolverResult(newMoveList, callback) {
     moveEnabled = false;
-    var apiurl = EXERCISES_PATH + getUrlParameter("exerciseid") + "/solver?solution=" + encodeURIComponent(newMoveList);
+    var apiurl = EXERCISES_PATH + getUrlParameter("exerciseid")
+        + "/solver?solution=" + encodeURIComponent(newMoveList);
     $.ajax({
         url: apiurl,
         dataType: DEFAULT_DATATYPE
@@ -103,3 +106,4 @@ $(function () {
     getExercise(EXERCISES_PATH + getUrlParameter("exerciseid"));
 });
 
+})();

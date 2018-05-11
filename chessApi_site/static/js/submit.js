@@ -1,3 +1,5 @@
+(function () {
+
 const DEFAULT_CONTENTTYPE = "application/json";
 const EXERCISES_PATH = "/api/exercises/";
 const EXERCISE_PAGE = "/site/solvepage.html?exerciseid=";
@@ -9,7 +11,7 @@ var initialBoardSet = true;
 var nickname = null;
 var email = null;
 
-function checkRegistered () {
+function checkRegistered() {
     nickname = window.localStorage.getItem("community-chess-nickname");
     email = window.localStorage.getItem("community-chess-email");
     if (nickname && email) {
@@ -19,13 +21,13 @@ function checkRegistered () {
     }
 }
 
-function checkSubmittable () {
+function checkSubmittable() {
     return (chessGame.turn() === "b")
         && chessGame.in_checkmate()
         && $("#ex-title").val();
 }
 
-function initialBoardClick (fromsan, tosan) {
+function initialBoardClick(fromsan, tosan) {
     var fromCol = parseInt(fromsan.slice(1));
     var toCol = parseInt(tosan.slice(1));
     if (fromCol > 0) {
@@ -41,8 +43,8 @@ function initialBoardClick (fromsan, tosan) {
     chessBoard.drawPieces(chessGame);
 }
 
-function setMovesClick (fromsan, tosan) {
-    if (chessGame.move({from: fromsan, to:tosan})) {
+function setMovesClick(fromsan, tosan) {
+    if (chessGame.move({from: fromsan, to: tosan})) {
         chessBoard.drawPieces(chessGame);
         if (checkSubmittable()) {
             $("#submit-btn").text("Submit exercise");
@@ -52,7 +54,7 @@ function setMovesClick (fromsan, tosan) {
     }
 }
 
-function submitBtnClicked () {
+function submitBtnClicked() {
     if (initialBoardSet) {
         $("#ex-initial-board").text(chessGame.fen());
         chessBoard.registerBoardClickCallback(setMovesClick);
@@ -63,7 +65,7 @@ function submitBtnClicked () {
     }
 }
 
-function submitRequest () {
+function submitRequest() {
     var requestBody = {
         headline: $("#ex-title").val(),
         about: $("#ex-about").val(),
@@ -104,3 +106,5 @@ $(function () {
         }
     })
 });
+
+})();
