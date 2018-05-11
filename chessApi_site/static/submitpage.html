@@ -16,7 +16,7 @@
 </head>
 <body>
         <a href="/site/submitpage.html" class="btn btn-default" style="color: #e2edeb; float: right;">Submit Exercise</a>
-    <a href="/site/usermystery.html" class="btn btn-default" style="color: #e2edeb; float: right;"><span class="oi oi-person" title="person" aria-hidden="true"></span> <span id="user-nickname">Mystery</span></a>
+        <a href="/site/homepage.html" class="btn btn-default" style="color: #e2edeb; float: right;"><span class="oi oi-person" title="person" aria-hidden="true"></span> <span id="user-nickname">Mystery </span><span class="oi oi-account-logout" title="account-logout" aria-hidden="true"></span></a>
     <h1><a style="color: #e2edeb" href="/site/homepage.html">Chess Community</a></h1>
     <p style="margin-left:15px;">Submit and Slove Chess Exercises</p>
     <div class="container" id="ex-solve">
@@ -36,14 +36,20 @@
                     <ul id="ex-moves"></ul>
                     <p style="color: #116466">After inital the chess board, click "Add moves" button to start add moves.</p>
                     <button id="submit-btn">Add moves</button>
+                    <div style="margin-top: 20px;">
+
+                        <button id="move-redo">Move Redo</button>
+                        <button id="set-inital">Back to inital</button>
+                        <button id="set-start">Start Over</button>
+                    </div>
                 </div>
 
             </div>
             <div class="col-sm-6">
                 <h2>Submit Exercise</h2>
-                <ul>
+                <ul id="move-info">
                     <li>Place the chess pieces to the board to inital the chess board.</li>
-                    <li>Click the chess piece on board to moove. </li>
+                    <li>Click the chess piece on board to move. </li>
                     <li>Click the chess piece on grey area to add/remove piece.</li>
                 </ul>
                     <svg id="chess-board" xmlns="http://www.w3.org/2000/svg"></svg>
