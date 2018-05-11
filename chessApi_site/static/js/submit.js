@@ -7,9 +7,23 @@ const REG_PAGE = "/site/register.html";
 
 var chessBoard = null;
 var chessGame = null;
-var initialBoardSet = true;
+var settingInitialBoard = true;
 var nickname = null;
 var email = null;
+
+function updateSubmitBtn() {
+    if (checkSubmittable()) {
+        $("#submit-btn").text("Submit exercise");
+    } else {
+        $("#submit-btn").text("Input moves until checkmate");
+    }
+}
+
+function updateUi() {
+    chessBoard.drawPieces(chessGame);
+    updateMoveList(chessGame);
+    updateSubmitBtn();
+}
 
 function checkRegistered() {
     nickname = window.localStorage.getItem("community-chess-nickname");
@@ -45,22 +59,16 @@ function initialBoardClick(fromsan, tosan) {
 
 function setMovesClick(fromsan, tosan) {
     if (chessGame.move({from: fromsan, to: tosan})) {
-        updateMoveList(chessGame);
-        chessBoard.drawPieces(chessGame);
-        if (checkSubmittable()) {
-            $("#submit-btn").text("Submit exercise");
-        } else {
-            $("#submit-btn").text("Input moves until checkmate");
-        }
+        updateUi();
     }
 }
 
 function submitBtnClicked() {
-    if (initialBoardSet) {
+    if (settingInitialBoard) {
         $("#ex-initial-board").text(chessGame.fen());
         chessBoard.registerBoardClickCallback(setMovesClick);
-        $("#submit-btn").text("Input moves until checkmate");
-        initialBoardSet = false;
+        settingInitialBoard = false;
+        updateUi();
     } else if (checkSubmittable()) {
         submitRequest();
     }
@@ -102,9 +110,22 @@ $(function () {
 
     $("#submit-btn").click(submitBtnClicked);
     $("#ex-title").change(function () {
-        if (checkSubmittable()) {
-            $("#submit-btn").text("Submit exercise");
+        updateSubmitBtn();
+    });
+    $("#undo-btn").click(function () {
+        chessGame.undo();
+        updateUi();
+    });
+    $("#revert-btn").click(function () {
+        if (!settingInitialBoard) {
+            chessGame = new Chess($("#ex-initial-board").text());
+            updateUi();
         }
+    });
+    $("#start-over-btn").click(function () {
+        chessGame = new Chess();
+        settingInitialBoard = true;
+        updateUi();
     })
 });
 
