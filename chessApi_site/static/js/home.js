@@ -1,3 +1,6 @@
+
+var exid;
+
 function getUsers() {
     return $.ajax({
         url: "/api/users",
@@ -5,52 +8,53 @@ function getUsers() {
     }).done(function (data) {
         var html = "";
         for (var i = 0; i<data.items.length;i++){
-            html+='<tr><th><a class="user_link nav-link " href="/site/homepage.html"></a> ';
-//            user'+data.items[i].nickname.toLowerCase()+'.html">';
+            html+='<tr><td><a class="user_link nav-link" href="/site/homepage.html"></a>';
             html+=data.items[i].nickname;
-//
-            html+='</a></th><th></th><th<span class="oi oi-trash" title="trash" aria-hidden="true"></span></th></tr>';
+            html+='<td><span class="oi oi-trash unselectable" title="trash" aria-hidden="true"></span></td></tr>';
         }
         console.log(data);
-        $('#user-all').html(html).on('click', 'tr', function () {
-            // Show current `tr` and hide others
-            $(this).show().siblings().hide();
-            var clickedCell = $(this).text().trim();
-           //            B(clickedCell);
-            console.log(clickedCell);
-
+        $('#user-all').html(html).on('click', 'td', function () {
+              var clickedUser = $(this).text().trim();
+//              $that = $(this);
+//              $('#user-all').find('tr').removeClass('active');
+//              $that.addClass('active');
+            console.log(clickedUser);
              function getExercise() {
                       return $.ajax({
                       url: "/api/exercises",
-                      dataType: "json"
+                      dataType: "json",
+                      contentType: "application/json"
                     }).done(function (data) {
-                      var html = "";
-                     html+='<tr><th class="nav-link">Exercise Title</th><th>Solved Times</th><th></th></tr>';
-                     for (var i = 0; i<data.items.length;i++){
-                           if (data.items[i].author === clickedCell){
-                            while(data.items[i].exercise_link){}
-                         html+='<tr><th><a class="exercise_link nav-link" href="/site/solvepage.html?exerciseid='+ data.items[i].exerciseid +'">';
-                       html+=data.items[i].headline;
-                           html+='<th>8</th><th><span class="oi oi-trash" title="trash" aria-hidden="true"></span></th></tr>';
+                         var html = "";
+                         html+='<h2><a style="color: #116466" href="/site/homepage.html">'+clickedUser+'\'s Exercises</a></h2>';
+                         html+='<tr><th></th></tr><tr><th></th></tr><p></p><tr><th></th></tr><tr><th></th></tr>';
+                         html+='<tr><th class="nav-link">Exercise Title</th><th>Solved Times</th><th></th></tr>';
+                        for (var i = 0; i<data.items.length; i++){
+                           if (data.items[i].author === clickedUser){
+                                var location = data.items[i]["@controls"]["self"]["href"];
+                                var exid = location.split("/").slice(-2)[0];
+                                console.log(location);
+                            html+='<tr><td><a class="exercise_link nav-link" href="/site/solvepage.html?exerciseid='+exid+'">';
+                            html+=data.items[i].headline;
+                            html+='<th>8</th><th><span class="oi oi-trash" title="trash" aria-hidden="true"></span></td></tr>';
                             }
-
-                            console.log(data.items[i].about);
+                            console.log(data.items[i].author);
                      }
                         console.log(data);
                         $('#exercise-all').html(html);
-                         }).fail(function (errorThrown) {
+                         }).fail(function (jqXHR, errorThrown) {
                              console.log("Error receiving exercise data: " + errorThrown);
-                              })
-
+                              var response = JSON.parse(jqXHR.responseText);
+                              alert(errorthrown + " : " + response["@error"]["@message"]);
+                          })
         }
         getExercise();
         });
-
     }).fail(function (errorThrown) {
         console.log("Error receiving exercise data: " + errorThrown);
     })
 }
-// $('.nohidden').show();
+
 getUsers();
 
 function getExercises() {
@@ -59,12 +63,15 @@ function getExercises() {
         dataType: "json"
     }).done(function (data) {
         var html = "";
+        html+='<h2><a style="color: #116466" href="/site/homepage.html">All Exercises</a></h2>';
+        html+='<tr><th></th></tr><tr><th></th></tr><p></p><tr><th></th></tr><tr><th></th></tr>';
         html+='<tr><th class="nav-link">Exercise Title</th><th>Solved Times</th><th></th></tr>';
         for (var i = 0; i<data.items.length;i++){
-
-            html+='<tr><th><a class="exercise_link nav-link" href="/site/solvepage.html?exerciseid='+data.items[i].exerciseid+'">';
+                                var location = data.items[i]["@controls"]["self"]["href"];
+                                var exid = location.split("/").slice(-2)[0];
+            html+='<tr><td><a class="exercise_link nav-link" href="/site/solvepage.html?exerciseid='+exid+'">';
             html+=data.items[i].headline;
-            html+='<th>8</th><th><span class="oi oi-trash" title="trash" aria-hidden="true"></span></th></tr>';
+            html+='<th>8</th><th><span class="oi oi-trash" title="trash" aria-hidden="true"></span></td></tr>';
 
 
         }
@@ -77,3 +84,19 @@ function getExercises() {
 }
 
 getExercises();
+
+//function submitRequest () {
+//    return $.ajax({
+//        url: "/api/exercises/",
+//        contentType: "application/json",
+//        data: JSON.stringify(requestBody),
+//        type: "GET"
+//    }).done(function (data, textstatus, xhr) {
+//        var location = xhr.getResponseHeader("Location");
+//        var exerciseid = location.split("/").slice(-2)[0];
+//      //  window.location.replace("/site/solvepage.html?exerciseid=" + exerciseid);
+//    }).fail(function (jqXHR, textstatus, errorthrown) {
+//        var response = JSON.parse(jqXHR.responseText);
+//        alert(errorthrown + " : " + response["@error"]["@message"]);
+//    })
+//}
