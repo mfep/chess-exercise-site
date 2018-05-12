@@ -15,9 +15,9 @@ function getUsers() {
         console.log(data);
         $('#user-all').html(html).on('click', 'td', function () {
               var clickedUser = $(this).text().trim();
-//              $that = $(this);
-//              $('#user-all').find('tr').removeClass('active');
-//              $that.addClass('active');
+              $that = $(this);
+              $('#user-all').find('tr').removeClass('active');
+              $that.addClass('active');
             console.log(clickedUser);
              function getExercise() {
                       return $.ajax({
