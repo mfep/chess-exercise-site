@@ -73,6 +73,8 @@ function listUsers() {
         data.items.forEach(function (userItem) {
             var row = user_protorow.clone().show();
             row.find("a").text(userItem.nickname).click(function () {
+                $(".active").removeClass("active");
+                row.addClass("active");
                 listSubmissions(userItem.nickname);
             });
             // TODO delete users
