@@ -1,102 +1,105 @@
+(function () {
 
-var exid;
+var exercise_protorow = null;
 
-function getUsers() {
-    return $.ajax({
-        url: "/api/users",
-        dataType: "json"
-    }).done(function (data) {
-        var html = "";
-        for (var i = 0; i<data.items.length;i++){
-            html+='<tr><td><a class="user_link nav-link" href="/site/homepage.html"></a>';
-            html+=data.items[i].nickname;
-            html+='<td><span class="oi oi-trash unselectable" title="trash" aria-hidden="true"></span></td></tr>';
+function processExerciseList(data) {
+    function deleteExercise(exerciseid, row) {
+        var loginInfo = getLoginInfo();
+        if (!loginInfo) {
+            return;
         }
-        console.log(data);
-        $('#user-all').html(html).on('click', 'td', function () {
-              var clickedUser = $(this).text().trim();
-              $that = $(this);
-              $('#user-all').find('td').removeClass('active');
-              $that.addClass('active');
-//             console.log(clickedUser);
-             function getExercise() {
-                      return $.ajax({
-                      url: "/api/exercises",
-                      dataType: "json",
-                      contentType: "application/json"
-                    }).done(function (data) {
-                         var html = "";
-                         html+='<h2><a style="color: #116466" href="/site/homepage.html">'+clickedUser+'\'s Exercises</a></h2>';
-                         html+='<tr><th></th></tr><tr><th></th></tr><p></p><tr><th></th></tr><tr><th></th></tr>';
-                         html+='<tr><th class="nav-link">Exercise Title</th><th>Solved Times</th><th></th></tr>';
-                        for (var i = 0; i<data.items.length; i++){
-                           if (data.items[i].author === clickedUser){
-                                var location = data.items[i]["@controls"]["self"]["href"];
-                                var exid = location.split("/").slice(-2)[0];
-//                                console.log(location);
-                            html+='<tr><td><a class="exercise_link nav-link" href="/site/solvepage.html?exerciseid='+exid+'">';
-                            html+=data.items[i].headline;
-                            html+='<th>8</th><th><span class="oi oi-trash" title="trash" aria-hidden="true"></span></td></tr>';
-                            }
-//                            console.log(data.items[i].author);
-                     }
-                        console.log(data);
-                        $('#exercise-all').html(html);
-                         }).fail(function (jqXHR, errorThrown) {
-                             console.log("Error receiving exercise data: " + errorThrown);
-                              var response = JSON.parse(jqXHR.responseText);
-                              alert(errorthrown + " : " + response["@error"]["@message"]);
-                          })
-        }
-        getExercise();
+        $.ajax({
+            url: "/api/exercises/" + exerciseid + "/?author_email=" + encodeURIComponent(loginInfo.email),
+            type: "DELETE"
+        }).done(function () {
+            row.remove();
+        }).fail(function (jqXHR, textstatus, errorthrown) {
+            var response = JSON.parse(jqXHR.responseText);
+            alert(errorthrown + " : " + response["@error"]["@message"]);
         });
-    }).fail(function (errorThrown) {
-        console.log("Error receiving exercise data: " + errorThrown);
-    })
-}
+    }
 
-getUsers();
-
-function getExercises() {
-    return $.ajax({
-        url: "/api/exercises",
-        dataType: "json"
-    }).done(function (data) {
-        var html = "";
-        html+='<h2><a style="color: #116466" href="/site/homepage.html">All Exercises</a></h2>';
-        html+='<tr><th></th></tr><tr><th></th></tr><p></p><tr><th></th></tr><tr><th></th></tr>';
-        html+='<tr><th class="nav-link">Exercise Title</th><th>Solved Times</th><th></th></tr>';
-        for (var i = 0; i<data.items.length;i++){
-            var location = data.items[i]["@controls"]["self"]["href"];
-            var exid = location.split("/").slice(-2)[0];
-            html+='<tr><td><a class="exercise_link nav-link" href="/site/solvepage.html?exerciseid='+exid+'">';
-            html+=data.items[i].headline;
-            html+='<th>8</th><th><span class="oi oi-trash" title="trash" aria-hidden="true"></span></td></tr>';
-
-
+    data.items.forEach(function (exerciseItem) {
+        var row = exercise_protorow.clone().attr("class", "exercise-row").show();
+        var exerciseid = exerciseItem["@controls"].self.href.split("/").slice(-2)[0];
+        var solverLink = "solvepage.html?exerciseid=" + exerciseid;
+        row.find("a").text(exerciseItem.headline).attr("href", solverLink);
+        var loginInfo = getLoginInfo();
+        if (loginInfo && loginInfo.nickname === exerciseItem.author) {
+            row.find(".oi").show().click(function () {
+                deleteExercise(exerciseid, row);
+            })
+        } else {
+            row.find(".oi").hide();
         }
-        console.log(data);
-        $('#exercise-all').html(html);
-
-    }).fail(function (errorThrown) {
-        console.log("Error receiving exercise data: " + errorThrown);
-    })
+        $("#exercise-all").append(row);
+    });
 }
 
-getExercises();
+function listUsers() {
+    function listSubmissions(nickname) {
+        $(".exercise-row").remove();
+        $.ajax({
+            url: "/api/users/" + encodeURIComponent(nickname) + "/submissions/",
+            dataType: DATATYPE
+        }).done(processExerciseList).fail(function (jqXHR, textstatus, errorthrown) {
+            var response = JSON.parse(jqXHR.responseText);
+            alert(errorthrown + " : " + response["@error"]["@message"]);
+        });
+    }
 
-//function submitRequest () {
-//    return $.ajax({
-//        url: "/api/exercises/",
-//        contentType: "application/json",
-//        data: JSON.stringify(requestBody),
-//        type: "GET"
-//    }).done(function (data, textstatus, xhr) {
-//        var location = xhr.getResponseHeader("Location");
-//        var exerciseid = location.split("/").slice(-2)[0];
-//      //  window.location.replace("/site/solvepage.html?exerciseid=" + exerciseid);
-//    }).fail(function (jqXHR, textstatus, errorthrown) {
-//        var response = JSON.parse(jqXHR.responseText);
-//        alert(errorthrown + " : " + response["@error"]["@message"]);
-//    })
-//}
+    function deleteUser(nickname, row) {
+        var loginInfo = getLoginInfo();
+        if (!loginInfo || loginInfo.nickname !== nickname) {
+            return;
+        }
+        $.ajax({
+            url: "/api/users/" + nickname + "/?email=" + encodeURIComponent(loginInfo.email),
+            type: "DELETE"
+        }).done(function () {
+            row.remove();
+        }).fail(function (jqXHR, textstatus, errorthrown) {
+            var response = JSON.parse(jqXHR.responseText);
+            alert(errorthrown + " : " + response["@error"]["@message"]);
+        });
+    }
+
+    var user_protorow = $("#user-proto-row").hide();
+
+    $.ajax({
+        url: "/api/users/",
+        dataType: DATATYPE
+    }).done(function (data) {
+        data.items.forEach(function (userItem) {
+            var row = user_protorow.clone().show();
+            row.find("a").text(userItem.nickname).click(function () {
+                listSubmissions(userItem.nickname);
+            });
+            // TODO delete users
+            row.find(".oi").hide();
+            $("#user-all").append(row);
+        });
+    }).fail(function (jqXHR, textstatus, errorthrown) {
+            var response = JSON.parse(jqXHR.responseText);
+            alert(errorthrown + " : " + response["@error"]["@message"]);
+    });
+}
+
+function listExercises() {
+    exercise_protorow = $("#exercise-proto-row").hide();
+    $.ajax({
+        url: "/api/exercises/",
+        dataType: DATATYPE
+    }).done(processExerciseList).fail(function (jqXHR, textstatus, errorthrown) {
+        var response = JSON.parse(jqXHR.responseText);
+        alert(errorthrown + " : " + response["@error"]["@message"]);
+    });
+}
+
+$(function () {
+    listUsers();
+    listExercises();
+});
+
+})();
+

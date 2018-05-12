@@ -927,7 +927,7 @@ class UsersTestCase(ResourcesApiTestCase):
         print('(' + self.test_delete_user.__name__ + ')', self.test_delete_user.__doc__)
         nickname = 'Mystery'
         resp = self.client.delete(resources.api.url_for(resources.User, nickname=nickname)
-                                  + '?author_email=mystery%40mymail.com')
+                                  + '?email=mystery%40mymail.com')
         self.assertEqual(204, resp.status_code)
         resp = self.client.get(resources.api.url_for(resources.User, nickname=nickname))
         self._assertErrorMessage(resp, 404, 'User does not exist')

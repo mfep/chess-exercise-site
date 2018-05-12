@@ -1,5 +1,6 @@
 const NICKNAME_STORAGE_KEY = "community-chess-nickname";
 const EMAIL_STORAGE_KEY = "community-chess-email";
+const DATATYPE = "json";
 
 function updateMoveList(chessGame) {
     var moveUl = $("#ex-moves");
@@ -14,6 +15,17 @@ function updateMoveList(chessGame) {
         moveUl.append("<li>"+ str +"</li>");
     }
 }
+
+function getLoginInfo() {
+    var nickname = window.localStorage.getItem(NICKNAME_STORAGE_KEY);
+    var email = window.localStorage.getItem(EMAIL_STORAGE_KEY);
+    if (nickname && email) {
+        return {nickname: nickname, email: email};
+    }
+    return null;
+}
+
+(function () {
 
 function updateUserHeader() {
     var nickname = window.localStorage.getItem(NICKNAME_STORAGE_KEY);
@@ -36,3 +48,5 @@ $(function () {
         updateUserHeader();
     });
 });
+
+})();

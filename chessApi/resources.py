@@ -569,7 +569,7 @@ class User(Resource):
             return missing_user_response(nickname)
 
         # Check if the queried email matches the one in the database
-        query_email = request.args.get('author_email')
+        query_email = request.args.get('email')
         if not _check_author_email(nickname, query_email):
             return WRONG_AUTH_RESP
 

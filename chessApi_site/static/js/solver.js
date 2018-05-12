@@ -1,6 +1,5 @@
 (function () {
 
-const DEFAULT_DATATYPE = "json";
 const EXERCISES_PATH = "/api/exercises/";
 const opponentWaitMs = 500;
 
@@ -47,7 +46,7 @@ function displayNextTurn() {
 function getExercise(apiurl) {
     return $.ajax({
         url: apiurl,
-        dataType: DEFAULT_DATATYPE
+        dataType: DATATYPE
     }).done(function (data, textStatus) {
         $("#message").text("Exercise data retrieved");
         $("#ex-title").text(data.headline);
@@ -68,7 +67,7 @@ function getSolverResult(newMoveList, callback) {
         + "/solver?solution=" + encodeURIComponent(newMoveList);
     $.ajax({
         url: apiurl,
-        dataType: DEFAULT_DATATYPE
+        dataType: DATATYPE
     }).done(function (data, textStatus) {
         var solverValue = data["value"];
         if (solverValue === "WRONG") {
