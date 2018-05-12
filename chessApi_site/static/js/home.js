@@ -16,9 +16,9 @@ function getUsers() {
         $('#user-all').html(html).on('click', 'td', function () {
               var clickedUser = $(this).text().trim();
               $that = $(this);
-              $('#user-all').find('tr').removeClass('active');
+              $('#user-all').find('td').removeClass('active');
               $that.addClass('active');
-            console.log(clickedUser);
+//             console.log(clickedUser);
              function getExercise() {
                       return $.ajax({
                       url: "/api/exercises",
@@ -33,12 +33,12 @@ function getUsers() {
                            if (data.items[i].author === clickedUser){
                                 var location = data.items[i]["@controls"]["self"]["href"];
                                 var exid = location.split("/").slice(-2)[0];
-                                console.log(location);
+//                                console.log(location);
                             html+='<tr><td><a class="exercise_link nav-link" href="/site/solvepage.html?exerciseid='+exid+'">';
                             html+=data.items[i].headline;
                             html+='<th>8</th><th><span class="oi oi-trash" title="trash" aria-hidden="true"></span></td></tr>';
                             }
-                            console.log(data.items[i].author);
+//                            console.log(data.items[i].author);
                      }
                         console.log(data);
                         $('#exercise-all').html(html);
@@ -67,8 +67,8 @@ function getExercises() {
         html+='<tr><th></th></tr><tr><th></th></tr><p></p><tr><th></th></tr><tr><th></th></tr>';
         html+='<tr><th class="nav-link">Exercise Title</th><th>Solved Times</th><th></th></tr>';
         for (var i = 0; i<data.items.length;i++){
-                                var location = data.items[i]["@controls"]["self"]["href"];
-                                var exid = location.split("/").slice(-2)[0];
+            var location = data.items[i]["@controls"]["self"]["href"];
+            var exid = location.split("/").slice(-2)[0];
             html+='<tr><td><a class="exercise_link nav-link" href="/site/solvepage.html?exerciseid='+exid+'">';
             html+=data.items[i].headline;
             html+='<th>8</th><th><span class="oi oi-trash" title="trash" aria-hidden="true"></span></td></tr>';
