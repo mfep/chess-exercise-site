@@ -24,22 +24,17 @@ function getUsers() {
                       url: "/api/exercises",
                       dataType: "json",
                       contentType: "application/json"
-                    }).done(function (data, test, xhr) {
-                      $('#exercise-all').html(html).on('click', 'td', function () {
-                      console.log(xhr);
-                           var location = xhr.getResponseHeader("Location");
-                           console.log(data.items[0].controls);
-                        //   var exid = location.split("/").slice(-2)[0];
-                           console.log(exerciseid);
-                          // window.location.replace("/site/solvepage.html?exerciseid=" + exid);
-                            });
+                    }).done(function (data) {
                          var html = "";
                          html+='<h2><a style="color: #116466" href="/site/homepage.html">'+clickedUser+'\'s Exercises</a></h2>';
                          html+='<tr><th></th></tr><tr><th></th></tr><p></p><tr><th></th></tr><tr><th></th></tr>';
                          html+='<tr><th class="nav-link">Exercise Title</th><th>Solved Times</th><th></th></tr>';
                         for (var i = 0; i<data.items.length; i++){
                            if (data.items[i].author === clickedUser){
-                            html+='<tr><td><a class="exercise_link nav-link" href="/site/solvepage.html?exerciseid='+ exid +'">';
+                                var location = data.items[i]["@controls"]["self"]["href"];
+                                var exid = location.split("/").slice(-2)[0];
+                                console.log(location);
+                            html+='<tr><td><a class="exercise_link nav-link" href="/site/solvepage.html?exerciseid='+exid+'">';
                             html+=data.items[i].headline;
                             html+='<th>8</th><th><span class="oi oi-trash" title="trash" aria-hidden="true"></span></td></tr>';
                             }
@@ -72,8 +67,9 @@ function getExercises() {
         html+='<tr><th></th></tr><tr><th></th></tr><p></p><tr><th></th></tr><tr><th></th></tr>';
         html+='<tr><th class="nav-link">Exercise Title</th><th>Solved Times</th><th></th></tr>';
         for (var i = 0; i<data.items.length;i++){
-
-            html+='<tr><td><a class="exercise_link nav-link" href="/site/solvepage.html?exerciseid=?">';
+                                var location = data.items[i]["@controls"]["self"]["href"];
+                                var exid = location.split("/").slice(-2)[0];
+            html+='<tr><td><a class="exercise_link nav-link" href="/site/solvepage.html?exerciseid='+exid+'">';
             html+=data.items[i].headline;
             html+='<th>8</th><th><span class="oi oi-trash" title="trash" aria-hidden="true"></span></td></tr>';
 
