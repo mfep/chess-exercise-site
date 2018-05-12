@@ -33,10 +33,7 @@ function registerButtonClicked() {
             alert("Welcome back, " + nickname + "!");
             saveUserToPrefs(nickname, email);
             window.location.replace(SUBMIT_PAGE);
-        }).fail(function (jqXHR, textstatus, errorthrown) {
-            var response = JSON.parse(jqXHR.responseText);
-            alert(errorthrown + " : " + response["@error"]["@message"] + "\n" + response["@error"]["@messages"][0]);
-        });
+        }).fail(alertRequestFail);
     }).fail(function () {
         // new user
         var requestData = {
@@ -52,10 +49,7 @@ function registerButtonClicked() {
             alert(nickname + ", welcome on the Chess Community Site");
             saveUserToPrefs(nickname, email);
             window.location.replace(SUBMIT_PAGE);
-        }).fail(function (jqXHR, textstatus, errorthrown) {
-            var response = JSON.parse(jqXHR.responseText);
-            alert(errorthrown + " : " + response["@error"]["@message"] + "\n" + response["@error"]["@messages"][0]);
-        });
+        }).fail(alertRequestFail);
     });
     return false;
 }

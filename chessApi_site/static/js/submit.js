@@ -93,10 +93,7 @@ function submitRequest() {
         var location = xhr.getResponseHeader("Location");
         var exerciseid = location.split("/").slice(-2)[0];
         window.location.replace(EXERCISE_PAGE + exerciseid);
-    }).fail(function (jqXHR, textstatus, errorthrown) {
-        var response = JSON.parse(jqXHR.responseText);
-        alert(errorthrown + " : " + response["@error"]["@message"]);
-    })
+    }).fail(alertRequestFail)
 }
 
 $(function () {

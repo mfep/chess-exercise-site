@@ -56,9 +56,7 @@ function getExercise(apiurl) {
         chessGame = new Chess(data["initial-state"]);
         chessBoard.drawPieces(chessGame);
         displayNextTurn();
-    }).fail(function (jqXHR, textStatus, errorThrown) {
-        $("#message").text("Error receiving exercise data: " + errorThrown);
-    })
+    }).fail(alertRequestFail);
 }
 
 function getSolverResult(newMoveList, callback) {
@@ -95,10 +93,7 @@ function getSolverResult(newMoveList, callback) {
                 console.log("Error: unexpected solver result");
             }
         }
-    }).fail(function (jqXHR, textStatus, errorThrown) {
-        console.log("Error receiving solver data: " + errorThrown);
-        moveEnabled = true;
-    });
+    }).fail(alertRequestFail);
 }
 
 $(function () {

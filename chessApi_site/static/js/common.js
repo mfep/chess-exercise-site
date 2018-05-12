@@ -25,6 +25,12 @@ function getLoginInfo() {
     return null;
 }
 
+function alertRequestFail(jqXHR, textstatus, errorthrown) {
+    var response = JSON.parse(jqXHR.responseText);
+    alert(jqXHR.status + " " + errorthrown + " : " + response["@error"]["@message"]
+        + "\n" + response["@error"]["@messages"][0]);
+}
+
 (function () {
 
 function updateUserHeader() {

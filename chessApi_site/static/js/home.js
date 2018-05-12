@@ -13,10 +13,7 @@ function processExerciseList(data) {
             type: "DELETE"
         }).done(function () {
             row.remove();
-        }).fail(function (jqXHR, textstatus, errorthrown) {
-            var response = JSON.parse(jqXHR.responseText);
-            alert(errorthrown + " : " + response["@error"]["@message"]);
-        });
+        }).fail(alertRequestFail);
     }
 
     data.items.forEach(function (exerciseItem) {
@@ -42,10 +39,7 @@ function listUsers() {
         $.ajax({
             url: "/api/users/" + encodeURIComponent(nickname) + "/submissions/",
             dataType: DATATYPE
-        }).done(processExerciseList).fail(function (jqXHR, textstatus, errorthrown) {
-            var response = JSON.parse(jqXHR.responseText);
-            alert(errorthrown + " : " + response["@error"]["@message"]);
-        });
+        }).done(processExerciseList).fail(alertRequestFail);
     }
 
     function deleteUser(nickname, row) {
@@ -58,10 +52,7 @@ function listUsers() {
             type: "DELETE"
         }).done(function () {
             row.remove();
-        }).fail(function (jqXHR, textstatus, errorthrown) {
-            var response = JSON.parse(jqXHR.responseText);
-            alert(errorthrown + " : " + response["@error"]["@message"]);
-        });
+        }).fail(alertRequestFail);
     }
 
     var user_protorow = $("#user-proto-row").hide();
@@ -81,10 +72,7 @@ function listUsers() {
             row.find(".oi").hide();
             $("#user-all").append(row);
         });
-    }).fail(function (jqXHR, textstatus, errorthrown) {
-            var response = JSON.parse(jqXHR.responseText);
-            alert(errorthrown + " : " + response["@error"]["@message"]);
-    });
+    }).fail(alertRequestFail);
 }
 
 function listExercises() {
@@ -92,10 +80,7 @@ function listExercises() {
     $.ajax({
         url: "/api/exercises/",
         dataType: DATATYPE
-    }).done(processExerciseList).fail(function (jqXHR, textstatus, errorthrown) {
-        var response = JSON.parse(jqXHR.responseText);
-        alert(errorthrown + " : " + response["@error"]["@message"]);
-    });
+    }).done(processExerciseList).fail(alertRequestFail);
 }
 
 $(function () {
