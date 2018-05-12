@@ -11,6 +11,7 @@
     <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
     <script type="text/javascript" src="js/home.js"></script>
 
+
 </head>
 <body>
     <a href="/site/submitpage.html" class="btn btn-default" style="color: #e2edeb; float: right;">Submit Exercise</a>
@@ -18,16 +19,16 @@
 
     <h1>Chess Community</h1>
     <p style="margin-left:15px">Submit and Slove Chess Exercises</p>
-    <div class="container">
+    <div id="mydiv" class="container">
         <div class="row">
         <div class="col-sm-6" >
             <h2><a style="color: #116466" href="/site/homepage.html">All Users</a></h2>
             <p>Click nickname to list exercises of the user</p>
             <table id="user-ll">
-                <tr><th class="nav-link">Nickname</th><th>No. of Submission</th><th></th></tr>
+                <tr><th class="nav-link unselectable">Nickname</th><th></th><th></th></tr>
             </table>
             <table id="user-all">
-                <tr><th><a class="user_link nav-link " href="/site/usermystery.html">Mystery</a></th><th></th><th><span class="oi oi-trash" title="trash" aria-hidden="true"></span></th></tr>
+                <!--<tr><th><a class="user_link nav-link " href="/site/usermystery.html">Mystery</a></th><th></th><th><span class="oi oi-trash" title="trash" aria-hidden="true"></span></th></tr>-->
                 <!--<tr><th><a class="user_link nav-link " href="/api/users/AxelW/">AxelW</a></th><th>5</th><th></th></tr>-->
                 <!--<tr><th><a class="user_link nav-link " href="/api/users/LinuxPenguin/">LinuxPenguin</a></th><th>6</th><th></th></tr>-->
                 <!--<tr><th><a class="user_link nav-link " href="/api/users/Koodari/">Koodari</a></th><th>9</th><th></th></tr>-->
@@ -35,8 +36,8 @@
             </table>
         </div>
         <div class="col-sm-6">
-            <h2><a style="color: #116466" href="/site/homepage.html">All Exercises</a></h2>
-            <p>Click title to open exercise</p>
+            <!--<h2><a style="color: #116466" href="/site/homepage.html">All Exercises</a></h2>-->
+            <!--<p>Click title to open exercise</p>-->
             <table id="exercise-all">
                 <!--<tr><th class="nav-link">Exercise Title</th><th>Solved Times</th><th></th></tr>-->
                 <!--<tr><th><a class="exercise_link nav-link" href="/site/solvepage.html?exerciseid=1">Exercise 001</a></th><th>8</th><th><span class="oi oi-trash" title="trash" aria-hidden="true"></span></th></tr>-->
@@ -49,29 +50,6 @@
         </div>
         <!-- Content here -->
     </div>
-    <div class="container" hidden="true">
-        <div class="row">
-        <div class="col-sm-6" >
-            <h2><a style="color: #116466" href="/site/homepage.html">All Users</a></h2>
-            <p>Click nickname to list exercises of the user</p>
-            <table id="user">
-                <tr><th class="nav-link">Nickname</th><th>No. of Submission</th><th></th></tr>
-                <tr><th><a class="user_link nav-link " href="/site/usermystery.html">Mystery</a></th><th>3</th><th><span class="oi oi-trash" title="trash" aria-hidden="true"></span></th></tr>
 
-            </table>
-        </div>
-        <div class="col-sm-6">
-            <h2><a style="color: #116466" href="/site/homepage.html">All Exercises</a></h2>
-            <p>Click title to open exercise</p>
-            <table id="exercises">
-                <tr><th class="nav-link">Exercise Title</th><th>Solved Times</th><th></th></tr>
-                <!--<tr><th><a class="exercise_link nav-link" href="/site/solvepage.html?exerciseid=1">Exercise 001</a></th><th>8</th><th><span class="oi oi-trash" title="trash" aria-hidden="true"></span></th></tr>-->
-                <!--<tr><th><a class="exercise_link nav-link" href="/site/solvepage.html?exerciseid=2">Exercise 002</a></th><th>17</th><th><span class="oi oi-trash" title="trash" aria-hidden="true"></span></th></tr>-->
-                <!--<tr><th><a class="exercise_link nav-link" href="/site/solvepage.html?exerciseid=3">Exercise 003</a></th><th>2</th><th><span class="oi oi-trash" title="trash" aria-hidden="true"></span></th></tr>-->
-            </table>
-        </div>
-        </div>
-        <!-- Content here -->
-    </div>
 </body>
 </html>

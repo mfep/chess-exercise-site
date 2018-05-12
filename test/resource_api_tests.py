@@ -561,14 +561,14 @@ class ExercisesTestCase(ResourcesApiTestCase):
         self.assertEqual(ADDED_EXERCISE_LOCATION, resp.headers.get('Location'))
 
     def test_add_exercise_not_json(self):
-        """Check if error code is correct when Content-Type is not set"""
+        """Check if error code is correct when Content-Type is not set. Displays error code 415"""
         print('(' + self.test_add_exercise_not_json.__name__ + ')', self.test_add_exercise_not_json.__doc__)
         resp = self.client.post(resources.api.url_for(resources.Exercises),
                                 data=json.dumps(ADD_EXERCISE_VALID_DATA))
         self._assertErrorMessage(resp, 415, 'Wrong request format')
 
     def test_add_exercise_missing_fields(self):
-        """Check if error code is correct when not all fields are provided in request"""
+        """Check if error code is correct when not all fields are provided in request. Displays error code 400."""
         print('(' + self.test_add_exercise_missing_fields.__name__ + ')', self.test_add_exercise_missing_fields.__doc__)
         request_data = ADD_EXERCISE_VALID_DATA.copy()
         request_data.pop('author')
@@ -578,7 +578,7 @@ class ExercisesTestCase(ResourcesApiTestCase):
         self._assertErrorMessage(resp, 400, 'Missing fields')
 
     def test_add_exercise_existing_title(self):
-        """Check if error code is correct when an existing exercise name is provided"""
+        """Check if error code is correct when an existing exercise name is provided. Displays error code 409."""
         print('(' + self.test_add_exercise_existing_title.__name__ + ')', self.test_add_exercise_existing_title.__doc__)
         request_data = ADD_EXERCISE_VALID_DATA.copy()
         request_data['headline'] = 'Fool Mate'
@@ -588,7 +588,7 @@ class ExercisesTestCase(ResourcesApiTestCase):
         self._assertErrorMessage(resp, 409, 'Existing exercise headline')
 
     def test_add_exercise_not_existing_user(self):
-        """Check if error code is correct when a non-existing username is provided"""
+        """Check if error code is correct when a non-existing username is provided. Displays error code 404."""
         print('(' + self.test_add_exercise_not_existing_user.__name__ + ')',
               self.test_add_exercise_not_existing_user.__doc__)
         request_data = ADD_EXERCISE_VALID_DATA.copy()
@@ -599,7 +599,8 @@ class ExercisesTestCase(ResourcesApiTestCase):
         self._assertErrorMessage(resp, 404, 'User does not exist')
 
     def test_add_exercise_invalid_email(self):
-        """Check if error code is correct when the provided email does not match the one in the database"""
+        """Check if error code is correct when the provided email does not match the one in the database.
+         Displays error code 401."""
         print('(' + self.test_add_exercise_invalid_email.__name__ + ')', self.test_add_exercise_invalid_email.__doc__)
         request_data = ADD_EXERCISE_VALID_DATA.copy()
         request_data['author-email'] = 'hacker@mymail.com'
@@ -609,7 +610,7 @@ class ExercisesTestCase(ResourcesApiTestCase):
         self._assertErrorMessage(resp, 401, 'Wrong authentication')
 
     def test_add_exercise_invalid_chess_data(self):
-        """Check if error code is correct when invalid chess data is sent"""
+        """Check if error code is correct when invalid chess data is sent. Displays error code 400."""
         print('(' + self.test_add_exercise_invalid_chess_data.__name__ + ')',
               self.test_add_exercise_invalid_chess_data.__doc__)
         request_data = ADD_EXERCISE_VALID_DATA.copy()
@@ -651,7 +652,7 @@ class ExercisesTestCase(ResourcesApiTestCase):
         self.assertEqual(MODIFY_EXERCISE_VALID_DATA['initial-state'], data['initial-state'])
 
     def test_modify_exercise_non_existing(self):
-        """Checks if error message is correct when trying to modify non-existing exercise"""
+        """Checks if error message is correct when trying to modify non-existing exercise. Displays error code 404."""
         print('(' + self.test_modify_exercise_non_existing.__name__ + ')',
               self.test_modify_exercise_non_existing.__doc__)
         exercise_id = 100
@@ -661,7 +662,7 @@ class ExercisesTestCase(ResourcesApiTestCase):
         self._assertErrorMessage(resp, 404, 'Exercise does not exist')
 
     def test_modify_exercise_not_json(self):
-        """Checks if error message is correct when request format is not set"""
+        """Checks if error message is correct when request format is not set. Displays error code 415."""
         print('(' + self.test_modify_exercise_not_json.__name__ + ')', self.test_modify_exercise_not_json.__doc__)
         exercise_id = 1
         resp = self.client.put(resources.api.url_for(resources.Exercise, exerciseid=exercise_id),
@@ -669,7 +670,7 @@ class ExercisesTestCase(ResourcesApiTestCase):
         self._assertErrorMessage(resp, 415, 'Wrong request format')
 
     def test_modify_exercise_missing_fields(self):
-        """Checks if error message is correct when required fields are missing from the request body"""
+        """Checks if error message is correct when required fields are missing from the request body. Error code 400."""
         print('(' + self.test_modify_exercise_missing_fields.__name__ + ')',
               self.test_modify_exercise_missing_fields.__doc__)
         request_data = MODIFY_EXERCISE_VALID_DATA.copy()
@@ -681,7 +682,8 @@ class ExercisesTestCase(ResourcesApiTestCase):
         self._assertErrorMessage(resp, 400, 'Missing fields')
 
     def test_modify_exercise_existing_title(self):
-        """Checks if error message is correct when trying to set the exercise headline to an existing one"""
+        """Checks if error message is correct when trying to set the exercise headline to an existing one.
+         Error code 409."""
         print('(' + self.test_modify_exercise_existing_title.__name__ + ')',
               self.test_modify_exercise_existing_title.__doc__)
         request_data = MODIFY_EXERCISE_VALID_DATA.copy()
@@ -693,7 +695,8 @@ class ExercisesTestCase(ResourcesApiTestCase):
         self._assertErrorMessage(resp, 409, 'Existing exercise headline')
 
     def test_modify_exercise_invalid_email(self):
-        """Checks if error message is correct when the provided user's email does not match the one in the database"""
+        """Checks if error message is correct when the provided user's email does
+         not match the one in the database. Error code 401."""
         print('(' + self.test_modify_exercise_invalid_email.__name__ + ')',
               self.test_modify_exercise_invalid_email.__doc__)
         request_data = MODIFY_EXERCISE_VALID_DATA.copy()
@@ -705,7 +708,7 @@ class ExercisesTestCase(ResourcesApiTestCase):
         self._assertErrorMessage(resp, 401, 'Wrong authentication')
 
     def test_modify_exercise_invalid_chess_data(self):
-        """Checks if error message is correct when the provided chess data is not valid"""
+        """Checks if error message is correct when the provided chess data is not valid. Displays error code 400."""
         print('(' + self.test_modify_exercise_invalid_chess_data.__name__ + ')',
               self.test_modify_exercise_invalid_chess_data.__doc__)
         request_data = MODIFY_EXERCISE_VALID_DATA.copy()
@@ -717,7 +720,7 @@ class ExercisesTestCase(ResourcesApiTestCase):
         self._assertErrorMessage(resp, 400, 'Invalid chess data')
 
     def test_delete_exercise(self):
-        """Checks if exercises can be deleted"""
+        """Checks if exercises can be deleted. Displays error code 404."""
         print('(' + self.test_delete_exercise.__name__ + ')', self.test_delete_exercise.__doc__)
         exercise_id = 1
         resp = self.client.delete(resources.api.url_for(resources.Exercise, exerciseid=exercise_id)
@@ -727,7 +730,8 @@ class ExercisesTestCase(ResourcesApiTestCase):
         self._assertErrorMessage(resp, 404, 'Exercise does not exist')
 
     def test_delete_exercise_non_existing(self):
-        """Checks if error message is correct when a non-existing exercise is tried to be deleted"""
+        """Checks if error message is correct when a non-existing exercise is tried to be deleted.
+         Displays error code 404."""
         print('(' + self.test_delete_exercise_non_existing.__name__ + ')',
               self.test_delete_exercise_non_existing.__doc__)
         exercise_id = 100
@@ -736,7 +740,8 @@ class ExercisesTestCase(ResourcesApiTestCase):
         self._assertErrorMessage(resp, 404, 'Exercise does not exist')
 
     def test_delete_exercise_invalid_email(self):
-        """Checks if error message is correct when an exercise is to be deleted with an invalid author email"""
+        """Checks if error message is correct when an exercise is to be deleted with an invalid author email.
+         Displays error code 401."""
         print('(' + self.test_delete_exercise_invalid_email.__name__ + ')',
               self.test_delete_exercise_invalid_email.__doc__)
         exercise_id = 1
@@ -772,7 +777,7 @@ class ExercisesTestCase(ResourcesApiTestCase):
         self.assertDictEqual(GOT_SOLVER, json.loads(resp.data.decode('utf-8')))
 
     def test_get_solver_non_existing(self):
-        """Checks error message when trying to access a non-existing exercise's solver"""
+        """Checks error message when trying to access a non-existing exercise's solver. Displays error code 404."""
         print('(' + self.test_get_solver_non_existing.__name__ + ')', self.test_get_solver_non_existing.__doc__)
         exercise_id = 100
         resp = self.client.get(resources.api.url_for(resources.Solver, exerciseid=exercise_id) +
@@ -780,14 +785,14 @@ class ExercisesTestCase(ResourcesApiTestCase):
         self._assertErrorMessage(resp, 404, 'Exercise does not exist')
 
     def test_get_solver_no_query(self):
-        """Checks error message when no solution query is provided"""
+        """Checks error message when no solution query is provided. Displays error code 400."""
         print('(' + self.test_get_solver_no_query.__name__ + ')', self.test_get_solver_no_query.__doc__)
         exercise_id = 1
         resp = self.client.get(resources.api.url_for(resources.Solver, exerciseid=exercise_id))
         self._assertErrorMessage(resp, 400, 'Bad query')
 
     def test_get_solver_nonsense_query(self):
-        """Checks error message when the provided query string is nonsense"""
+        """Checks error message when the provided query string is nonsense. Displays error code 400."""
         print('(' + self.test_get_solver_nonsense_query.__name__ + ')', self.test_get_solver_nonsense_query.__doc__)
         exercise_id = 1
         resp = self.client.get(resources.api.url_for(resources.Solver, exerciseid=exercise_id) +
@@ -822,7 +827,7 @@ class UsersTestCase(ResourcesApiTestCase):
         self.assertDictEqual(GOT_SUBMISSIONS_EMPTY, json.loads(resp.data.decode('utf-8')))
 
     def test_submissions_non_existing(self):
-        """Checks error code when requesting submissions of non-existing user"""
+        """Checks error code when requesting submissions of non-existing user. Displays error code 404."""
         print('(' + self.test_submissions_non_existing.__name__ + ')', self.test_submissions_non_existing.__doc__)
         nickname = 'Hacker'
         resp = self.client.get(resources.api.url_for(resources.Submissions, nickname=nickname))
@@ -859,7 +864,7 @@ class UsersTestCase(ResourcesApiTestCase):
         self.assertEqual(MODIFY_USER_VALID_DATA['nickname'], data['nickname'])
 
     def test_modify_user_non_existing(self):
-        """Checks if error message is correct when trying to modify non-existing user"""
+        """Checks if error message is correct when trying to modify non-existing user. Displays error code 404."""
         print('(' + self.test_modify_user_non_existing.__name__ + ')', self.test_modify_user_non_existing.__doc__)
         nickname = 'Animal'
         resp = self.client.put(resources.api.url_for(resources.User, nickname=nickname),
@@ -868,7 +873,7 @@ class UsersTestCase(ResourcesApiTestCase):
         self._assertErrorMessage(resp, 404, 'User does not exist')
 
     def test_modify_user_not_json(self):
-        """Checks if error message is correct when request format is not set"""
+        """Checks if error message is correct when request format is not set. Displays error code 415."""
         print('(' + self.test_modify_user_not_json.__name__ + ')', self.test_modify_user_not_json.__doc__)
         nickname = 'Mystery'
         resp = self.client.put(resources.api.url_for(resources.User, nickname=nickname),
@@ -876,7 +881,8 @@ class UsersTestCase(ResourcesApiTestCase):
         self._assertErrorMessage(resp, 415, 'Wrong request format')
 
     def test_modify_user_missing_fields(self):
-        """Checks if error message is correct when required fields are missing from the request body"""
+        """Checks if error message is correct when required fields are missing from the request body.
+         Displays error code 400."""
         print('(' + self.test_modify_user_missing_fields.__name__ + ')',
               self.test_modify_user_missing_fields.__doc__)
         request_data = MODIFY_USER_VALID_DATA.copy()
@@ -888,7 +894,8 @@ class UsersTestCase(ResourcesApiTestCase):
         self._assertErrorMessage(resp, 400, 'Missing fields')
 
     def test_modify_user_existing_nickname(self):
-        """Checks if error message is correct when trying to set the user nickname to an existing one"""
+        """Checks if error message is correct when trying to set the user nickname to an existing one.
+         Displays error code 409."""
         print('(' + self.test_modify_user_existing_nickname.__name__ + ')',
               self.test_modify_user_existing_nickname.__doc__)
         request_data = MODIFY_USER_VALID_DATA.copy()
@@ -900,7 +907,8 @@ class UsersTestCase(ResourcesApiTestCase):
         self._assertErrorMessage(resp, 409, 'Existing nickname')
 
     def test_modify_user_invalid_email(self):
-        """Checks if error message is correct when the provided user's email does not match the one in the database"""
+        """Checks if error message is correct when the provided user's email does not match the one in the database.
+          Displays error code 401."""
         print('(' + self.test_modify_user_invalid_email.__name__ + ')', self.test_modify_user_invalid_email.__doc__)
         request_data = MODIFY_USER_VALID_DATA.copy()
         request_data['former_email'] = 'hacker%40mymail.com'
@@ -911,7 +919,7 @@ class UsersTestCase(ResourcesApiTestCase):
         self._assertErrorMessage(resp, 401, 'Wrong authentication')
 
     def test_delete_user(self):
-        """Checks if user can be deleted"""
+        """Checks if user can be deleted. Displays error code 404."""
         print('(' + self.test_delete_user.__name__ + ')', self.test_delete_user.__doc__)
         nickname = 'Mystery'
         resp = self.client.delete(resources.api.url_for(resources.User, nickname=nickname)
@@ -921,7 +929,8 @@ class UsersTestCase(ResourcesApiTestCase):
         self._assertErrorMessage(resp, 404, 'User does not exist')
 
     def test_delete_user_non_existing(self):
-        """Checks if error message is correct when a non-existing user is tried to be deleted"""
+        """Checks if error message is correct when a non-existing user is tried to be deleted.
+        Displays error code 404."""
         print('(' + self.test_delete_user_non_existing.__name__ + ')',
               self.test_delete_user_non_existing.__doc__)
         nickname = 'Animal'
@@ -930,7 +939,8 @@ class UsersTestCase(ResourcesApiTestCase):
         self._assertErrorMessage(resp, 404, 'User does not exist')
 
     def test_delete_user_invalid_email(self):
-        """Checks if error message is correct when a user is to be deleted with invalid authentication email"""
+        """Checks if error message is correct when a user is to be deleted with invalid authentication email.
+        Displays error code 404."""
         print('(' + self.test_delete_user_invalid_email.__name__ + ')', self.test_delete_user_invalid_email.__doc__)
         nickname = 'Mystery'
         resp = self.client.delete(resources.api.url_for(resources.User, nickname=nickname)
@@ -956,14 +966,14 @@ class UsersTestCase(ResourcesApiTestCase):
         self.assertEqual(resp.headers.get('Location'), ADDED_USER_LOCATION)
 
     def test_add_user_not_json(self):
-        """Check if error code is correct when Content-Type is not set"""
+        """Check if error code is correct when Content-Type is not set. Displays error code 415."""
         print('(' + self.test_add_user_not_json.__name__ + ')', self.test_add_user_not_json.__doc__)
         resp = self.client.post(resources.api.url_for(resources.Users),
                                 data=json.dumps(ADD_USER_VALID_DATA))
         self._assertErrorMessage(resp, 415, 'Wrong request format')
 
     def test_add_user_missing_fields(self):
-        """Check if error code is correct when not all fields are provided in request"""
+        """Check if error code is correct when not all fields are provided in request. Displays error code 400."""
         print('(' + self.test_add_user_missing_fields.__name__ + ')', self.test_add_user_missing_fields.__doc__)
         request_data = ADD_USER_VALID_DATA.copy()
         request_data.pop('nickname')
@@ -973,7 +983,7 @@ class UsersTestCase(ResourcesApiTestCase):
         self._assertErrorMessage(resp, 400, 'Missing fields')
 
     def test_add_user_existing_nickname(self):
-        """Check if error code is correct when an existing user nickname is provided"""
+        """Check if error code is correct when an existing user nickname is provided. Displays error code 409."""
         print('(' + self.test_add_user_existing_nickname.__name__ + ')', self.test_add_user_existing_nickname.__doc__)
         request_data = ADD_USER_VALID_DATA.copy()
         request_data['nickname'] = 'Mystery'
